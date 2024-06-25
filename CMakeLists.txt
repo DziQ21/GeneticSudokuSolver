@@ -13,11 +13,20 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     add_compile_options(/W4 /WX)
 endif()
 
-add_executable(SudokuSolver hello.cpp)
+# Include directories
+include_directories(${PROJECT_SOURCE_DIR}/inc)
 
+# Find all .cpp files in the src directory
+file(GLOB SOURCES ${PROJECT_SOURCE_DIR}/src/*.cpp)
+
+# Add the executable
+add_executable(SudokuSolver ${SOURCES})
+
+# Enable testing
 include(CTest)
 enable_testing()
 
+# Packaging settings
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 include(CPack)
