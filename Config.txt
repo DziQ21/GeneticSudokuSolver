@@ -1,0 +1,2 @@
+LogLevel DBG
+SudokuPath ./testData/1.txt

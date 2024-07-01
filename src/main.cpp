@@ -8,8 +8,8 @@
 * Include files
 ****************************************************************************************/
 #include <stdio.h>                          /* for standard input/output functions     */
-
-
+#include "SudokuLoader.h"
+#include "ConfigLoader.h"
 /************************************************************************************//**
 ** \brief     This is the program entry point.
 ** \param     argc Number of program arguments.
@@ -19,9 +19,9 @@
 ****************************************************************************************/
 int main(void)
 {
-    int a =-10;
+  ConfigLoader("./Config.txt");
     // unsigned int b=a; 
-  printf("Hello World aaads%d!\n",a);
+  // printf("Hello World aaads%d!\n",a);
   return 0;
 } /*** end of main ***/
 
