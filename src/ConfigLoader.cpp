@@ -8,18 +8,33 @@ ConfigLoader::ConfigLoader(std::string configDir)
 {
     std::ifstream configFile(configDir);
     if (!configFile.is_open()) {
-        std::cout << "Could not open config file: " << configDir << std::endl;
+        std::cerr << "Could not open config file: " << configDir << std::endl;
         return;
     }
 
     std::string line;
     while (std::getline(configFile, line)) {
         std::istringstream iss(line);
-        std::string key, value;
-        if (!(iss >> key >> value)) {
+        std::string key;
+        
+        // Extract the key
+        if (!(iss >> key)) {
             std::cerr << "Error parsing line: " << line << std::endl;
             continue;
         }
+        
+        // Extract the rest of the line as the value
+        std::string value;
+        std::getline(iss, value);
+        
+        // Remove leading spaces from the value
+        size_t start = value.find_first_not_of(" \t");
+        if (start != std::string::npos) {
+            value = value.substr(start);
+        } else {
+            value.clear(); // No valid value found, clear value
+        }
+        
         config.ParseEntry(key, value);
     }
 }
