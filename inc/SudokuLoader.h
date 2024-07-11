@@ -9,6 +9,7 @@ private:
     std::array<std::array<short,9>,9> solution;
     void parseFile(const std::string& file);
 public:
+    std::string sudokuToStr();
     SudokuLoader(const std::string& file);
     ~SudokuLoader();
 };

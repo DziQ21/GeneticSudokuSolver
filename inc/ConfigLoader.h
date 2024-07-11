@@ -36,6 +36,7 @@ private:
     std::string sudokuPath;
     /* data */
 public:
+    const std::string& getSudokuPath() const {return sudokuPath;};
     void ParseEntry(std::string key,std::string value);
     Config();
     ~Config(){};
