@@ -1,5 +1,6 @@
 #include "SudokuLoader.h"
 #include <fstream>
+#include <iostream>
 
 
 SudokuLoader::~SudokuLoader()
@@ -12,16 +13,30 @@ SudokuLoader::SudokuLoader(const std::string& file)
     parseFile(file);
 }
 
+std::string SudokuLoader::sudokuToStr()
+{
+    std::string res = "";
+    for(int i = 0; i < 9; i++)
+    {
+        for(int j = 0; j < 9; j++)
+        {
+            res += std::to_string(sudoku[i][j]) + " ";
+        }
+        res += "\n";
+    }
+    return res;
+}
+
 
 void SudokuLoader::parseFile(const std::string& file)
 {
+
     std::ifstream infile(file);
     if (!infile.is_open()) {
         // std::cerr << "Failed to open file: " << file << std::endl;
         //logerror here
         return;
     }
-
     std::string line;
     int row = 0;
 

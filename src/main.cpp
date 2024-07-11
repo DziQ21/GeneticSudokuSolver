@@ -11,6 +11,7 @@
 #include "SudokuLoader.h"
 #include "ConfigLoader.h"
 #include "Logger.h"
+#include <iostream>
 /************************************************************************************//**
 ** \brief     This is the program entry point.
 ** \param     argc Number of program arguments.
@@ -22,12 +23,9 @@ int main(void)
 {
   ConfigLoader configLoader("./Config.txt");
   SudokuLoader sudoku(configLoader.getConfig().getSudokuPath());
-  LOGERROR<<"test log";
+  std::cout<<sudoku.sudokuToStr();
+  // LOGERROR<<"test log";
     // unsigned int b=a; 
   // printf("Hello World aaads%d!\n",a);
   return 0;
 } /*** end of main ***/
-
-
-/*********************************** end of main.c *************************************/
-
