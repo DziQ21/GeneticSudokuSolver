@@ -1,28 +1,18 @@
-/************************************************************************************//**
-* \file         main.c
-* \brief        Application source file.
-*
-****************************************************************************************/
-
-/****************************************************************************************
-* Include files
-****************************************************************************************/
-#include <stdio.h>                          /* for standard input/output functions     */
+#include <stdio.h>     
 #include "SudokuLoader.h"
 #include "ConfigLoader.h"
 #include "Logger.h"
 #include <iostream>
-/************************************************************************************//**
-** \brief     This is the program entry point.
-** \param     argc Number of program arguments.
-** \param     argv Array with program arguments.
-** \return    Program return code. 0 for success, error code otherwise.
-**
-****************************************************************************************/
+#include "Population.h"
+
+
+
 int main(void)
 {
   ConfigLoader configLoader("./Config.txt");
   SudokuLoader sudoku(configLoader.getConfig().getSudokuPath());
+
+  Population population(100,sudoku.getSudoku());
   std::cout<<sudoku.sudokuToStr();
   // LOGERROR<<"test log";
     // unsigned int b=a; 

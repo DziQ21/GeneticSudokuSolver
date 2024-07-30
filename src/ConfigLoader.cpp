@@ -3,6 +3,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <cstdlib>
 
 ConfigLoader::ConfigLoader(std::string configDir)
 {
@@ -39,6 +40,11 @@ ConfigLoader::ConfigLoader(std::string configDir)
     }
 }
 
+unsigned long parseLong(std::string param)
+{
+    return std::stoul(param);
+}
+
 
 ConfigLoader::~ConfigLoader()
 {
@@ -49,6 +55,7 @@ Config::Config()
     entries.push_back(std::unique_ptr<ConfigEntry>(new ConfigEntryImpl<LogLevel>("LogLevel", parseLog, logLevel)));
     auto bypass = [](std::string input) -> std::string {return input;};
     entries.push_back(std::unique_ptr<ConfigEntry>(new ConfigEntryImpl<std::string>("SudokuPath", bypass, sudokuPath)));
+    entries.push_back(std::unique_ptr<ConfigEntry>(new ConfigEntryImpl<unsigned long>("PopulationSize",parseLong, populationSize)));
 }
 
 LogLevel parseLog(std::string param)

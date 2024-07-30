@@ -1,31 +1,19 @@
 #pragma once
+#include "SudokuLoader.h"
 
-class BasePhenotype
+class BaseGenotype
 {
+public:
     //make virtual functions
-    BasePhenotype();
-    ~BasePhenotype();
-    Phenotype();
-    virtual ~Phenotype();
-    virtual void mutate();
-    virtual void crossover(BasePhenotype);
+    BaseGenotype(const Sudoku& sudoku);
+    virtual ~BaseGenotype();
     void evaluate();
     void print();
-    void setFitness();
-    void getFitness();
-    void setGenotype();
-    void getGenotype();
-    void setPhenotype();
-    void getPhenotype();
-    void setGenome();
-    void getGenome();
-    void setGenomeSize();
-    void getGenomeSize();
-    void setGenomeType();
-    void getGenomeType();
+private:
+    const Sudoku& sudoku;
 };
 
-class Phenotype : public BasePhenotype
+class Phenotype : public BaseGenotype
 {
 public:
     Phenotype();
