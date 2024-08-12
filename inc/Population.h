@@ -3,14 +3,15 @@
 #include <vector>
 #include "Genotype.h"
 
+template <typename T>
 class Population
 {
     public: 
-    Population(int size, const Sudoku& sudoku);
+    Population<T>(int size, const Sudoku& sudoku);
     ~Population();
     void evolve();
     void print();
     private:
-    std::vector<BaseGenotype> population;
+    std::vector<std::unique_ptr<BaseGenotype>> population;
     const Sudoku& sudoku;
 };
