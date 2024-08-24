@@ -2,13 +2,14 @@
 
 #include <vector>
 #include "Genotype.h"
+#include <memory>
 
 template <typename T>
 class Population
 {
     public: 
-    Population<T>(int size, const Sudoku& sudoku);
-    ~Population();
+    Population(int size, const Sudoku& sudoku);
+    ~Population(){};
     void evolve();
     void print();
     private:

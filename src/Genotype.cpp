@@ -3,6 +3,7 @@
 #include "SudokuLoader.h"
 #include "Genotype.h"
 #include <unordered_set>
+#include <iostream>
 
 SoloNumGenotype::SoloNumGenotype(const Sudoku& sudoku):BaseGenotype(sudoku)
 {
@@ -10,7 +11,7 @@ SoloNumGenotype::SoloNumGenotype(const Sudoku& sudoku):BaseGenotype(sudoku)
     int count = 0;
     for (int i = 0; i < 9; i++) {
         for (int j = 0; j < 9; j++) {
-            if (sudoku[i][j] != -1) {
+            if (sudoku[i][j] == -1) {
                 count++;
             }
         }
@@ -33,11 +34,28 @@ SoloNumGenotype::~SoloNumGenotype()
 void SoloNumGenotype::crossover()
 {
     // Crossover implementation
+    evalSudokuValid = false;
 }
 
-void SoloNumGenotype::print()
+void BaseGenotype::print()
 {
     // Print implementation
+    std::cout << getPrintStr() << std::endl;
+}
+std::string BaseGenotype::getPrintStr()
+{
+    if (!evalSudokuValid) {
+        fillEvalSudoku();
+    }
+    std::string str;
+    for (int i = 0; i < 9; i++) {
+        for (int j = 0; j < 9; j++) {
+            str += std::to_string(evalSudoku[i][j]);
+            str += " ";
+        }
+        str += "\n";
+    }
+    return str;
 }
 
 void SoloNumGenotype::fillEvalSudoku()
@@ -54,10 +72,13 @@ void SoloNumGenotype::fillEvalSudoku()
             }
         }
     }
+    evalSudokuValid = true;
 }
 
 void BaseGenotype::evaluate() {
-    fillEvalSudoku();
+    if (!evalSudokuValid) {
+        fillEvalSudoku();
+    }
     evalValue = 0;
 
     // Check for row and column collisions

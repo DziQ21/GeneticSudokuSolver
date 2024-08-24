@@ -4,6 +4,8 @@
 #include "SudokuLoader.h"
 #include "Population.h"
 #include <memory>
+#include "SudokuLoader.h"
+
 
 template <typename T>
 Population<T>::Population(int size, const Sudoku& sudoku) : sudoku(sudoku)
@@ -14,26 +16,27 @@ Population<T>::Population(int size, const Sudoku& sudoku) : sudoku(sudoku)
         // make unique and push
         //population deff from class bellow
         // std::vector<BaseGenotype> population;
-        population.push_back(std::make_unique<T>(new T(sudoku)));
+        population.push_back(std::make_unique<T>(T(sudoku)));
     }
 }
 
-Population::~Population()
-{
-    // Clean up any dynamically allocated resources
-    // (if necessary)
-}
-
-void Population::evolve()
+template <typename T>
+void Population<T>::evolve()
 {
     // Implement the evolution process
     // (e.g., selection, crossover, mutation)
 }
-
-void Population::print()
+template <typename T>
+void Population<T>::print()
 {
     // Print the current population
     // for (const auto& genotype : population)
     // {
     // }
+    for (size_t i = 0; i < population.size(); i++)
+    {
+        population[i]->print();
+    }
 }
+
+template class Population<SoloNumGenotype>;//its needed for some reason
