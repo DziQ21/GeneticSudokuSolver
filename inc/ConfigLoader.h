@@ -34,6 +34,7 @@ private:
     std::vector<std::unique_ptr<ConfigEntry>> entries;
     LogLevel logLevel;
     std::string sudokuPath;
+    unsigned long populationSize;
     /* data */
 public:
     const std::string& getSudokuPath() const {return sudokuPath;};

@@ -1,2 +1,3 @@
 LogLevel DBG
 SudokuPath ./testData/1.txt
+PopulationSize 10000
