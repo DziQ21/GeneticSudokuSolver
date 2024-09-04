@@ -5,15 +5,16 @@
 #include <iostream>
 #include "Population.h"
 #include "Genotype.h"
+#include "Fitest.h"
 
 
 
 int main(void)
 {
-  ConfigLoader configLoader("../Config.txt");
+  ConfigLoader configLoader("./Config.txt");
   SudokuLoader sudoku(configLoader.getConfig().getSudokuPath());
 
-  Population<SoloNumGenotype> population((int)2,sudoku.getSudoku());
+  Population<SoloNumGenotype> population((int)2,sudoku.getSudoku(),TestfitestFunction);
   std::cout<<sudoku.sudokuToStr()<<std::endl;
   population.print(); 
   // LOGERROR<<"test log";

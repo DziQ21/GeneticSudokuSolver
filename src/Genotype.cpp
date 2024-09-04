@@ -31,10 +31,10 @@ SoloNumGenotype::~SoloNumGenotype()
     // Destructor implementation
 }
 
-void SoloNumGenotype::crossover()
+BaseGenotype* SoloNumGenotype::crossover(BaseGenotype &other)
 {
     // Crossover implementation
-    evalSudokuValid = false;
+    return 0;
 }
 
 void BaseGenotype::print()
@@ -47,6 +47,7 @@ std::string BaseGenotype::getPrintStr()
     if (!evalSudokuValid) {
         fillEvalSudoku();
     }
+    evaluate();
     std::string str;
     for (int i = 0; i < 9; i++) {
         for (int j = 0; j < 9; j++) {
@@ -55,6 +56,15 @@ std::string BaseGenotype::getPrintStr()
         }
         str += "\n";
     }
+    str+= "Eval value: " + std::to_string(evalValue)+"\n";
+    std::string rowStr = "Row collisions: ", colStr = "Column collisions: ", boxStr = "Box collisions: ";
+    for (int i = 0; i < 9; i++) {
+        rowStr += std::to_string(i) + ":" + std::to_string(rowcount[i]) + ", ";
+        colStr += std::to_string(i) + ":" + std::to_string(colcount[i]) + ", ";
+        boxStr += std::to_string(i) + ":" + std::to_string(boxcount[i]) + ", ";
+    }
+    str += rowStr + "\n" + colStr + "\n" + boxStr + "\n";
+    
     return str;
 }
 
@@ -80,6 +90,11 @@ void BaseGenotype::evaluate() {
         fillEvalSudoku();
     }
     evalValue = 0;
+    for (int i = 0; i < 9; i++) {
+        rowcount[i] = 0;
+        colcount[i] = 0;
+        boxcount[i] = 0;
+    }
 
     // Check for row and column collisions
     for (int i = 0; i < 9; i++) {
@@ -88,6 +103,7 @@ void BaseGenotype::evaluate() {
             // Row check
             if (rowSet.find(evalSudoku[i][j]) != rowSet.end()) {
                 evalValue++;
+                rowcount[i]++;
             } else {
                 rowSet.insert(evalSudoku[i][j]);
             }
@@ -95,21 +111,24 @@ void BaseGenotype::evaluate() {
             // Column check
             if (colSet.find(evalSudoku[j][i]) != colSet.end()) {
                 evalValue++;
+                colcount[i]++;
             } else {
                 colSet.insert(evalSudoku[j][i]);
             }
         }
     }
-
+    int box = 0;
     // Check for 3x3 subgrid collisions
     for (int row = 0; row < 9; row += 3) {
         for (int col = 0; col < 9; col += 3) {
+            box++;
             std::unordered_set<int> gridSet;
             for (int i = 0; i < 3; i++) {
                 for (int j = 0; j < 3; j++) {
                     int val = evalSudoku[row + i][col + j];
                     if (gridSet.find(val) != gridSet.end()) {
                         evalValue++;
+                        boxcount[box-1]++;
                     } else {
                         gridSet.insert(val);
                     }
