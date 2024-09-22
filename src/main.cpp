@@ -14,9 +14,16 @@ int main(void)
   ConfigLoader configLoader("./Config.txt");
   SudokuLoader sudoku(configLoader.getConfig().getSudokuPath());
 
-  Population<SoloNumGenotype> population((int)2,sudoku.getSudoku(),TestfitestFunction);
+  Population<SoloNumGenotype> population((int)configLoader.getConfig().getPopulationSize(),sudoku.getSudoku(),TestFitestFunction);
   std::cout<<sudoku.sudokuToStr()<<std::endl;
-  population.print(); 
+  for(int i =1; i<200; i++)
+  {
+    population.print(1);
+    population.nextGeneration();
+    printf("Generation %d\n",i);
+  }
+  population.print(10);
+  // population.print(); 
   // LOGERROR<<"test log";
     // unsigned int b=a; 
   // printf("Hello World aaads%d!\n",a);

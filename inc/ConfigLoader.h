@@ -38,6 +38,7 @@ private:
     /* data */
 public:
     const std::string& getSudokuPath() const {return sudokuPath;};
+    unsigned long getPopulationSize() const {return populationSize;};
     void ParseEntry(std::string key,std::string value);
     Config();
     ~Config(){};

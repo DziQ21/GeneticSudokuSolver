@@ -4,10 +4,12 @@
 #include "Genotype.h"
 #include <unordered_set>
 #include <iostream>
+#include <cassert>
 
 SoloNumGenotype::SoloNumGenotype(const Sudoku& sudoku):BaseGenotype(sudoku)
 {
-    
+    genoType = SoloNum;
+    evalSudokuValid = false;
     int count = 0;
     for (int i = 0; i < 9; i++) {
         for (int j = 0; j < 9; j++) {
@@ -31,15 +33,54 @@ SoloNumGenotype::~SoloNumGenotype()
     // Destructor implementation
 }
 
+SoloNumGenotype::SoloNumGenotype(const Sudoku& sudoku, std::vector<short> numbers):BaseGenotype(sudoku)
+{
+    genoType = SoloNum;
+    sudokunumbers = numbers;
+    evalSudokuValid = false;
+}
+
 BaseGenotype* SoloNumGenotype::crossover(BaseGenotype &other)
 {
-    // Crossover implementation
-    return 0;
+
+    BaseGenotype* result = nullptr;
+    switch (other.getGenoType())
+    {
+    case SoloNum:
+        {
+            SoloNumGenotype& otherSolo = static_cast<SoloNumGenotype&>(other);
+            const std::vector<short>& otherNumbers = otherSolo.getNumbers();
+            std::vector<short> newNumbers;
+            newNumbers.reserve(sudokunumbers.size());
+
+            std::random_device rd;
+            std::mt19937 gen(rd());
+            std::uniform_int_distribution<> distrib(0, 1); 
+
+        for (size_t i = 0; i < sudokunumbers.size(); ++i)
+        {
+            if (distrib(gen) == 0)
+            {
+                newNumbers.push_back(sudokunumbers[i]);
+            }
+            else
+            {
+                newNumbers.push_back(otherNumbers[i]);
+            }
+        }
+        result = new SoloNumGenotype(sudoku, newNumbers); 
+        }
+        break;
+    
+    default:
+        assert("ilegal crossover"&&0);
+    }
+
+    return result;
 }
 
 void BaseGenotype::print()
 {
-    // Print implementation
     std::cout << getPrintStr() << std::endl;
 }
 std::string BaseGenotype::getPrintStr()

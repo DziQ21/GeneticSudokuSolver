@@ -13,14 +13,14 @@ public:
     BaseGenotype(const Sudoku& sudoku): sudoku(sudoku),evalSudokuValid(false){};
     virtual ~BaseGenotype(){};
     virtual void mutate()=0;
-    BaseGenotype* crossover(BaseGenotype);
+    virtual BaseGenotype* crossover(BaseGenotype& other) = 0;
     void evaluate();
     void print();
     std::string getPrintStr();
     int getEvalValue() const { return evalValue; }
-    GenotypeType getType() const { return type; }
+    GenotypeType getGenoType() const { return genoType; }
 protected:
-    GenotypeType type;
+    GenotypeType genoType;
     virtual void fillEvalSudoku() = 0;
     const Sudoku& sudoku;
     Sudoku evalSudoku;
@@ -35,9 +35,11 @@ class SoloNumGenotype : public BaseGenotype
 {
 public:
     SoloNumGenotype(const Sudoku& sudoku);
+    SoloNumGenotype(const Sudoku&, std::vector<short>);
     ~SoloNumGenotype();
     BaseGenotype* crossover(BaseGenotype &other);
     virtual void mutate(){evalSudokuValid = false;};
+    std::vector<short> getNumbers() const { return sudokunumbers; }
 protected:
     void fillEvalSudoku();
     std::vector<short> sudokunumbers;
