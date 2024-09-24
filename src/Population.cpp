@@ -41,6 +41,15 @@ void Population<T>::print(size_t a)
     {
         population[i]->print();
     }
+    double totalEvalValue = std::accumulate(population.begin(), population.end(), 0.0, [](double sum, const std::unique_ptr<BaseGenotype> &genotype) {
+        return sum + genotype->getEvalValue();
+    });
+
+    double averageEvalValue = totalEvalValue / population.size();
+
+    // Print the average evaluation value
+    std::cout << "Average evaluation value: " << averageEvalValue << std::endl;
+
 }
 
 template <typename T>
@@ -58,15 +67,21 @@ void Population<T>::nextGeneration()
     std::cout << "eval finished in " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms" << std::endl;
 
     start = std::chrono::high_resolution_clock::now();
-    population = fitestFunction(population, 0.5);
+    population = fitestFunction(population, 0.3);
     end = std::chrono::high_resolution_clock::now();
     std::cout << "fitestFunction finished in " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms" << std::endl;
 
     start = std::chrono::high_resolution_clock::now();
     fillRestOfPopulation();
-    // mutate();
     end = std::chrono::high_resolution_clock::now();
-    std::cout << "fillRestOfPopulation (and mutate) finished in " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms" << std::endl;
+    std::cout << "fillRestOfPopulation  finished in " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms" << std::endl;
+    start = std::chrono::high_resolution_clock::now();
+    for(size_t i = 0; i < population.size(); i++)
+    {
+        population[i]->mutate(0.01);
+    }
+    end = std::chrono::high_resolution_clock::now();
+    std::cout << " mutate() finished in " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms" << std::endl;
 }
 
 template <typename T>
@@ -87,6 +102,7 @@ void Population<T>::fillRestOfPopulation()
         auto tmp = std::unique_ptr<BaseGenotype>(population[parent1Index]->crossover(*population[parent2Index]));
         tmpPopulation.push_back(std::move(tmp));
     }
+    std::cout<<"to fill "<<tmpPopulation.size()<<std::endl;
     for (size_t i = 0; i < population.size(); i++)
     {
         tmpPopulation.push_back(std::move(population[i]));

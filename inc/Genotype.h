@@ -12,7 +12,7 @@ public:
     //make virtual functions
     BaseGenotype(const Sudoku& sudoku): sudoku(sudoku),evalSudokuValid(false){};
     virtual ~BaseGenotype(){};
-    virtual void mutate()=0;
+    virtual void mutate(float mutationRate)=0;
     virtual BaseGenotype* crossover(BaseGenotype& other) = 0;
     void evaluate();
     void print();
@@ -38,7 +38,21 @@ public:
     SoloNumGenotype(const Sudoku&, std::vector<short>);
     ~SoloNumGenotype();
     BaseGenotype* crossover(BaseGenotype &other);
-    virtual void mutate(){evalSudokuValid = false;};
+    virtual void mutate(float mutationRate);
+    std::vector<short> getNumbers() const { return sudokunumbers; }
+protected:
+    void fillEvalSudoku();
+    std::vector<short> sudokunumbers;
+};
+
+class FullPermutation : public BaseGenotype
+{
+public:
+    FullPermutation(const Sudoku& sudoku);
+    FullPermutation(const Sudoku&, std::vector<short>);
+    ~FullPermutation();
+    BaseGenotype* crossover(BaseGenotype &other);
+    virtual void mutate(float mutationRate);
     std::vector<short> getNumbers() const { return sudokunumbers; }
 protected:
     void fillEvalSudoku();

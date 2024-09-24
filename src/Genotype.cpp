@@ -108,7 +108,21 @@ std::string BaseGenotype::getPrintStr()
     
     return str;
 }
-
+void SoloNumGenotype::mutate(float mutationRate)
+{
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<> dis(0, 1);
+    std::uniform_int_distribution<> dis2(0, 8);
+    for (size_t i = 0; i < sudokunumbers.size(); i++)
+    {
+        if (dis(gen) < mutationRate)
+        {
+            evalSudokuValid = false;
+            sudokunumbers[i] = dis2(gen);
+        }
+    }
+}
 void SoloNumGenotype::fillEvalSudoku()
 {
     int count = 0;
@@ -127,6 +141,7 @@ void SoloNumGenotype::fillEvalSudoku()
 }
 
 void BaseGenotype::evaluate() {
+    // std::cout<<"BaseGenotype::evaluate()"<<std::endl;
     if (!evalSudokuValid) {
         fillEvalSudoku();
     }
@@ -138,11 +153,9 @@ void BaseGenotype::evaluate() {
     }
 
     // Check for row and column collisions
-    std::array<bool,9> colisionRow;
-    std::array<bool,9> colisionCol;//fix that something is wrong with calculation but this algo is faster
     for (int i = 0; i < 9; i++) {
-        colisionRow = {false, false, false, false, false, false, false, false, false};
-        colisionCol = {false, false, false, false, false, false, false, false, false};
+        std::array<bool,9> colisionRow = {false, false, false, false, false, false, false, false, false};
+        std::array<bool,9> colisionCol = {false, false, false, false, false, false, false, false, false};
         for (int j = 0; j < 9; j++) {
             // Row check
             if (colisionRow[evalSudoku[i][j]-1]) {
@@ -165,16 +178,18 @@ void BaseGenotype::evaluate() {
     // Check for 3x3 subgrid collisions
     for (int row = 0; row < 9; row += 3) {
         for (int col = 0; col < 9; col += 3) {
+            std::array<bool,9> colisionBox = {false, false, false, false, false, false, false, false, false};
             box++;
-            std::unordered_set<int> gridSet;
             for (int i = 0; i < 3; i++) {
                 for (int j = 0; j < 3; j++) {
                     int val = evalSudoku[row + i][col + j];
-                    if (gridSet.find(val) != gridSet.end()) {
+                    if (colisionBox[val-1]) {
+                        // if(box==1)
+                        // std::cout<< "row col val" << box <<" "<<row<<i<<" "<<col<<j<<" "<<val<<std::endl;
                         evalValue++;
                         boxcount[box-1]++;
                     } else {
-                        gridSet.insert(val);
+                        colisionBox[val-1] = true;
                     }
                 }
             }
