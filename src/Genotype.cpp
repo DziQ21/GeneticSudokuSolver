@@ -138,23 +138,26 @@ void BaseGenotype::evaluate() {
     }
 
     // Check for row and column collisions
+    std::array<bool,9> colisionRow;
+    std::array<bool,9> colisionCol;//fix that something is wrong with calculation but this algo is faster
     for (int i = 0; i < 9; i++) {
-        std::unordered_set<int> rowSet, colSet;
+        colisionRow = {false, false, false, false, false, false, false, false, false};
+        colisionCol = {false, false, false, false, false, false, false, false, false};
         for (int j = 0; j < 9; j++) {
             // Row check
-            if (rowSet.find(evalSudoku[i][j]) != rowSet.end()) {
+            if (colisionRow[evalSudoku[i][j]-1]) {
                 evalValue++;
                 rowcount[i]++;
             } else {
-                rowSet.insert(evalSudoku[i][j]);
+                colisionRow[evalSudoku[i][j]-1] = true;
             }
 
             // Column check
-            if (colSet.find(evalSudoku[j][i]) != colSet.end()) {
+            if (colisionCol[evalSudoku[j][i]-1]) {
                 evalValue++;
                 colcount[i]++;
             } else {
-                colSet.insert(evalSudoku[j][i]);
+                colisionCol[evalSudoku[j][i]-1] = true;
             }
         }
     }
