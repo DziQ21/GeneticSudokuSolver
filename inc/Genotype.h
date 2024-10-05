@@ -3,7 +3,10 @@
 
 enum GenotypeType
 {
-    SoloNum
+    SoloNum,
+    FullPermutation,
+    ColPermutation,
+    BoxPermutation
 };
 
 class BaseGenotype
@@ -36,7 +39,7 @@ class SoloNumGenotype : public BaseGenotype
 public:
     SoloNumGenotype(const Sudoku& sudoku);
     SoloNumGenotype(const Sudoku&, std::vector<short>);
-    ~SoloNumGenotype();
+    virtual ~SoloNumGenotype();
     BaseGenotype* crossover(BaseGenotype &other);
     virtual void mutate(float mutationRate);
     std::vector<short> getNumbers() const { return sudokunumbers; }
@@ -45,12 +48,12 @@ protected:
     std::vector<short> sudokunumbers;
 };
 
-class FullPermutation : public BaseGenotype
+class FullPermutationGenotype : public BaseGenotype
 {
 public:
-    FullPermutation(const Sudoku& sudoku);
-    FullPermutation(const Sudoku&, std::vector<short>);
-    ~FullPermutation();
+    FullPermutationGenotype(const Sudoku& sudoku);
+    FullPermutationGenotype(const Sudoku&, std::vector<short>);
+    virtual ~FullPermutationGenotype(){};
     BaseGenotype* crossover(BaseGenotype &other);
     virtual void mutate(float mutationRate);
     std::vector<short> getNumbers() const { return sudokunumbers; }

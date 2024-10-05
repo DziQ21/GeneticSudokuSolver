@@ -25,7 +25,6 @@ Population_t TournamentFitestFunction(Population_t &pop,float removeRate)
     Population_t result;
     size_t tournamentSize = std::max(2, int(1/removeRate));
     
-    std::cout<<"TournamentFitestFunction5"<<tournamentSize<<std::endl;
     while (!pop.empty()) 
     {
         Population_t tournamentParticipants;

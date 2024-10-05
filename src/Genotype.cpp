@@ -5,6 +5,9 @@
 #include <unordered_set>
 #include <iostream>
 #include <cassert>
+#include <algorithm> 
+#include <random>  
+#include <iostream>
 
 SoloNumGenotype::SoloNumGenotype(const Sudoku& sudoku):BaseGenotype(sudoku)
 {
@@ -195,4 +198,185 @@ void BaseGenotype::evaluate() {
             }
         }
     }
+}
+
+FullPermutationGenotype::FullPermutationGenotype(const Sudoku& sudoku):BaseGenotype(sudoku)
+{
+    genoType = FullPermutation;
+    evalSudokuValid = false;
+    std::vector<short> remainingNumbers={9,9,9,9,9,9,9,9,9};
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    int size = 0;
+    for(int i = 0; i < 9; i++)
+    {
+        for(int j = 0; j < 9; j++)
+        {
+            if(sudoku[i][j] != -1)
+            {
+                evalSudoku[i][j] = sudoku[i][j];
+                remainingNumbers[sudoku[i][j]-1]--;
+            }
+            else
+            {
+                size++;
+            }
+
+        }
+    }
+    //create sudoku numbersand shuffle them
+    sudokunumbers.reserve(size);
+    for(int i = 0; i < 9; i++)
+    {
+        for(int j = 0; j < remainingNumbers[i]; j++)
+        {
+            sudokunumbers.push_back(i+1);
+        }
+    }
+    std::shuffle(sudokunumbers.begin(),sudokunumbers.end(),gen);
+}
+
+FullPermutationGenotype::FullPermutationGenotype(const Sudoku& sudoku, std::vector<short> numbers):BaseGenotype(sudoku)
+{
+    genoType = FullPermutation;
+    sudokunumbers = numbers;
+    evalSudokuValid = false;
+    fillEvalSudoku();
+    // Check if there are 9 of each number in evalSudoku
+    std::vector<int> count(9, 0);
+    for (const auto& row : evalSudoku) {
+        for (const auto& num : row) {
+            if (num >= 1 && num <= 9) {
+                count[num - 1]++;
+            }
+        }
+    }
+
+    for (int i = 0; i < 9; ++i) {
+        if (count[i] != 9) {
+            throw std::runtime_error("Invalid genotype: incorrect number of each digit in evalSudoku");
+        }
+    }
+}
+BaseGenotype* FullPermutationGenotype::crossover(BaseGenotype &other)
+{
+    BaseGenotype* result = nullptr;
+    switch (other.getGenoType())
+    {
+    case FullPermutation:
+        {
+            FullPermutationGenotype& parent1 = *this;
+            FullPermutationGenotype& parent2 = dynamic_cast<FullPermutationGenotype&>(other);
+
+            // Ensure both parents have the same size
+            assert(parent1.sudokunumbers.size() == parent2.sudokunumbers.size());
+
+            size_t size = parent1.sudokunumbers.size();
+            std::vector<short> offspring(size, -1);
+
+            // Random number generator
+            std::random_device rd;
+            std::mt19937 gen(rd());
+            std::uniform_int_distribution<> dis(0, size - 1);
+
+            // Select two crossover points
+            int crossoverPoint1 = dis(gen);
+            int crossoverPoint2 = dis(gen);
+
+            // Ensure crossoverPoint1 < crossoverPoint2
+            if (crossoverPoint1 > crossoverPoint2) {
+                std::swap(crossoverPoint1, crossoverPoint2);
+            }
+
+            // Copy the segment between the crossover points from parent1 to offspring
+            for (int i = crossoverPoint1; i <= crossoverPoint2; ++i) {
+                offspring[i] = parent1.sudokunumbers[i];
+            }
+
+            // Map the remaining elements from parent2 to offspring
+            for (int i = crossoverPoint1; i <= crossoverPoint2; ++i) {
+                if (std::find(offspring.begin(), offspring.end(), parent2.sudokunumbers[i]) == offspring.end()) {
+                    int pos = i;
+                    while (crossoverPoint1 <= pos && pos <= crossoverPoint2) {
+                        pos = std::distance(parent2.sudokunumbers.begin(), std::find(parent2.sudokunumbers.begin(), parent2.sudokunumbers.end(), parent1.sudokunumbers[pos]));
+                    }
+                    offspring[pos] = parent2.sudokunumbers[i];
+                }
+            }
+
+            // Fill in the remaining positions with elements from parent2
+            for (std::size_t i = 0; i < size; ++i) {
+                if (offspring[i] == -1) {
+                    offspring[i] = parent2.sudokunumbers[i];
+                }
+            }
+
+            // Create the result genotype
+            result = new FullPermutationGenotype(sudoku,offspring);
+        }
+    break;
+    
+    default:
+        assert("ilegal crossover"&&0);
+    }
+
+    return result;
+}
+
+//TODO optimize probably
+void FullPermutationGenotype::mutate(float mutationRate)
+{
+    std::random_device rd;
+    std::mt19937 gen(rd());
+
+    // Use a binomial distribution to determine the number of mutations
+    std::binomial_distribution<> binom_dist(sudokunumbers.size(), mutationRate);
+    size_t numMutations = binom_dist(gen)+1;
+
+    // If numMutations is greater than 0, shuffle a subset of the vector
+    if (numMutations > 0)
+    {
+        // Create a vector of indices
+        std::vector<int> indices(sudokunumbers.size());
+        std::iota(indices.begin(), indices.end(), 0);
+
+        // Shuffle the indices
+        std::shuffle(indices.begin(), indices.end(), gen);
+
+        // Select the first numMutations indices
+        std::vector<int> selectedIndices(indices.begin(), indices.begin() + numMutations);
+
+        std::vector<int> subset;
+        for (int index : selectedIndices)
+        {
+            subset.push_back(sudokunumbers[index]);
+        }
+        std::shuffle(subset.begin(), subset.end(), gen);
+
+        // Place the shuffled subset back into sudokunumbers
+        for (size_t i = 0; i < selectedIndices.size(); ++i)
+        {
+            sudokunumbers[selectedIndices[i]] = subset[i];
+        }
+    }
+
+    // Invalidate the evaluation
+    evalSudokuValid = false;
+}
+
+void FullPermutationGenotype::fillEvalSudoku()
+{
+    int count = 0;
+    for (int i = 0; i < 9; i++) {
+        for (int j = 0; j < 9; j++) {
+            if (sudoku[i][j] == -1) {
+                evalSudoku[i][j] = sudokunumbers[count++];
+            }
+            else
+            {
+                evalSudoku[i][j] = sudoku[i][j];
+            }
+        }
+    }
+    evalSudokuValid = true;
 }
