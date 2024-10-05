@@ -13,6 +13,7 @@ class ConfigEntry
     virtual void parseValue(const std::string& value) = 0;
     std::string name;
     ConfigEntry()=delete;
+    virtual ~ConfigEntry(){};
 };
 
 template<class T>
@@ -25,6 +26,7 @@ class ConfigEntryImpl:public ConfigEntry
     private:
     std::function<T(std::string)> parser;
     T& value;
+    virtual ~ConfigEntryImpl(){};
 
 };
 
@@ -38,6 +40,7 @@ private:
     /* data */
 public:
     const std::string& getSudokuPath() const {return sudokuPath;};
+    unsigned long getPopulationSize() const {return populationSize;};
     void ParseEntry(std::string key,std::string value);
     Config();
     ~Config(){};

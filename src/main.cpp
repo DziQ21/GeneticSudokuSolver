@@ -5,19 +5,28 @@
 #include <iostream>
 #include "Population.h"
 #include "Genotype.h"
+#include "Fitest.h"
 
 
 
 int main(void)
 {
-  ConfigLoader configLoader("../Config.txt");
+  ConfigLoader configLoader("./Config.txt");
   SudokuLoader sudoku(configLoader.getConfig().getSudokuPath());
 
-  Population<SoloNumGenotype> population((int)2,sudoku.getSudoku());
+  Population<SoloNumGenotype> population((int)configLoader.getConfig().getPopulationSize(),sudoku.getSudoku(),TournamentFitestFunction);
+  
+  
   std::cout<<sudoku.sudokuToStr()<<std::endl;
-  population.print(); 
-  // LOGERROR<<"test log";
-    // unsigned int b=a; 
-  // printf("Hello World aaads%d!\n",a);
+  for(int i =1; i<400; i++)
+  {
+    population.print(1);
+    population.nextGeneration();
+    printf("Generation %d\n",i);
+  }
+  population.print(10);
+
+  // Population<SoloNumGenotype> population(1,sudoku.getSudoku(),TestFitestFunction);
+  // population.print(1); 
   return 0;
-} /*** end of main ***/
+}
