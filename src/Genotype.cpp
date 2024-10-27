@@ -144,7 +144,6 @@ void SoloNumGenotype::fillEvalSudoku()
 }
 
 void BaseGenotype::evaluate() {
-    // std::cout<<"BaseGenotype::evaluate()"<<std::endl;
     if (!evalSudokuValid) {
         fillEvalSudoku();
     }
@@ -160,14 +159,12 @@ void BaseGenotype::evaluate() {
         std::array<bool,9> colisionRow = {false, false, false, false, false, false, false, false, false};
         std::array<bool,9> colisionCol = {false, false, false, false, false, false, false, false, false};
         for (int j = 0; j < 9; j++) {
-            // Row check
             if (colisionRow[evalSudoku[i][j]-1]) {
                 evalValue++;
                 rowcount[i]++;
             } else {
                 colisionRow[evalSudoku[i][j]-1] = true;
             }
-
             // Column check
             if (colisionCol[evalSudoku[j][i]-1]) {
                 evalValue++;
@@ -501,13 +498,10 @@ BaseGenotype* RowPermutationGenotype::crossover(BaseGenotype &other)
         {
             RowPermutationGenotype& parent1 = *this;
             RowPermutationGenotype& parent2 = dynamic_cast<RowPermutationGenotype&>(other);
-            //select rows at random and create new pop using that
-            // Random number generator
             std::random_device rd;
             std::mt19937 gen(rd());
             std::uniform_int_distribution<> dis(0, 1);
             std::array<std::vector<short>, 9> offspringRows;
-            // Select rows at random from the two parents
             for (size_t i = 0; i < parent1.rows.size(); ++i) {
                 if (dis(gen) == 0) {
                     offspringRows[i] = parent1.rows[i];
@@ -553,4 +547,111 @@ void RowPermutationGenotype::fillEvalSudoku()
             }
         }
     }
+}
+
+//BOX
+
+BoxPermutationGenotype::BoxPermutationGenotype(const Sudoku& sudoku):BaseGenotype(sudoku)
+{
+    genoType = BoxPermutation;
+    evalSudokuValid = false;
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::size_t currBox = 0;
+    for (int row = 0; row < 9; row += 3) {
+        for (int col = 0; col < 9; col += 3) {
+            std::vector<bool> remainingNumbers(9, true);
+            for (int i = 0; i < 3; i++) {
+                for (int j = 0; j < 3; j++) {
+                    if (sudoku[row + i][col + j] != -1) {
+                        remainingNumbers[sudoku[row + i][col + j] - 1] = false;
+                    }
+                }
+            }
+            for (int num = 0; num < 9; num++) {
+                if (remainingNumbers[num]) {
+                    box[currBox].push_back(num + 1);
+                }
+            }
+            std::shuffle(box[currBox].begin(), box[currBox].end(), gen);
+            currBox++;
+        }
+    }
+}
+BoxPermutationGenotype::BoxPermutationGenotype(const Sudoku& sudoku, std::array<std::vector<short>,9> box):BaseGenotype(sudoku)
+{
+    genoType = BoxPermutation;
+    //use std::move maybe
+    evalSudokuValid = false;
+    this->box = box;
+}
+BaseGenotype* BoxPermutationGenotype::crossover(BaseGenotype &other)
+{
+    BaseGenotype* result = nullptr;
+    switch (other.getGenoType())
+    {
+        case BoxPermutation:
+        {
+            BoxPermutationGenotype& parent1 = *this;
+            BoxPermutationGenotype& parent2 = dynamic_cast<BoxPermutationGenotype&>(other);
+            //select rows at random and create new pop using that
+            // Random number generator
+            std::random_device rd;
+            std::mt19937 gen(rd());
+            std::uniform_int_distribution<> dis(0, 1);
+            std::array<std::vector<short>, 9> offspringRows;
+            // Select rows at random from the two parents
+            for (size_t i = 0; i < parent1.box.size(); ++i) {
+                if (dis(gen) == 0) {
+                    offspringRows[i] = parent1.box[i];
+                } else {
+                    offspringRows[i] = parent2.box[i];
+                }
+            }
+
+            // Create the result genotype
+            result = new BoxPermutationGenotype(sudoku, offspringRows);
+        }   
+        break;
+        default:
+            assert("illegal crossover" && 0);
+    }
+    return result;
+}
+void BoxPermutationGenotype::mutate(float mutationRate)
+{
+    evalSudokuValid = false;
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<> dis(0, 1);
+    for (size_t i = 0; i < box.size(); i++)
+    {
+        if (dis(gen) < mutationRate)
+        {
+            std::shuffle(box[i].begin(), box[i].end(), gen);
+        }
+    }
+}
+void BoxPermutationGenotype::fillEvalSudoku()
+{
+    std::size_t currBox = 0;
+    for (int row = 0; row < 9; row += 3) {
+        for (int col = 0; col < 9; col += 3) {
+            std::size_t pos = 0;
+            for (int i = 0; i < 3; i++) {
+                for (int j = 0; j < 3; j++) {
+                     if (sudoku[row + i][col + j] == -1) {
+                        evalSudoku[row + i][col + j] = box[currBox][pos++];
+                    }
+                    else
+                    {
+                        evalSudoku[row + i][col + j] = sudoku[row + i][col + j];
+                    }
+                }
+            }
+            currBox++;
+        }
+    }
+
+    evalSudokuValid = true;
 }

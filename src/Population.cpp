@@ -147,3 +147,4 @@ void Population<T>::fillRestOfPopulation()
 template class Population<SoloNumGenotype>;
 template class Population<FullPermutationGenotype>;
 template class Population<RowPermutationGenotype>;
+template class Population<BoxPermutationGenotype>;

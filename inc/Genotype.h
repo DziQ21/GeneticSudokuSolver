@@ -86,7 +86,7 @@ public:
     virtual ~BoxPermutationGenotype(){};
     BaseGenotype* crossover(BaseGenotype &other);
     virtual void mutate(float mutationRate);
-    const std::array<std::vector<short>,9>& getRows() const { return rows; }
+    const std::array<std::vector<short>,9>& getBox() const { return box; }
 protected:
     void fillEvalSudoku();
     std::array<std::vector<short>,9> box;
