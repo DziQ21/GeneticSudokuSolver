@@ -241,8 +241,11 @@ FullPermutationGenotype::FullPermutationGenotype(const Sudoku& sudoku, std::vect
     genoType = FullPermutation;
     sudokunumbers = numbers;
     evalSudokuValid = false;
+    validateGenotype(__LINE__);
+}
+
+void FullPermutationGenotype::validateGenotype(int line) {
     fillEvalSudoku();
-    // Check if there are 9 of each number in evalSudoku
     std::vector<int> count(9, 0);
     for (const auto& row : evalSudoku) {
         for (const auto& num : row) {
@@ -254,17 +257,73 @@ FullPermutationGenotype::FullPermutationGenotype(const Sudoku& sudoku, std::vect
 
     for (int i = 0; i < 9; ++i) {
         if (count[i] != 9) {
+            print();
+            std::cout <<"line "<<line<<" Invalid genotype: incorrect number of " << i + 1 << " in evalSudoku" << std::endl;
             throw std::runtime_error("Invalid genotype: incorrect number of each digit in evalSudoku");
         }
     }
 }
+
+//now working impelmentastion of  (PMX)
+// FullPermutationGenotype& parent1 = *this;
+//             FullPermutationGenotype& parent2 = dynamic_cast<FullPermutationGenotype&>(other);
+
+//             // Ensure both parents have the same size
+//             assert(parent1.sudokunumbers.size() == parent2.sudokunumbers.size());
+
+//             size_t size = parent1.sudokunumbers.size();
+//             std::vector<short> offspring(size, -1);
+
+//             // Random number generator
+//             std::random_device rd;
+//             std::mt19937 gen(rd());
+//             std::uniform_int_distribution<> dis(0, size - 1);
+
+//             // Select two crossover points
+//             int crossoverPoint1 = dis(gen);
+//             int crossoverPoint2 = dis(gen);
+
+//             // Ensure crossoverPoint1 < crossoverPoint2
+//             if (crossoverPoint1 > crossoverPoint2) {
+//                 std::swap(crossoverPoint1, crossoverPoint2);
+//             }
+
+//             // Copy the segment between the crossover points from parent1 to offspring
+//             for (int i = crossoverPoint1; i <= crossoverPoint2; ++i) {
+//                 offspring[i] = parent1.sudokunumbers[i];
+//             }
+
+//             // Map the remaining elements from parent2 to offspring
+//             for (int i = crossoverPoint1; i <= crossoverPoint2; ++i) {
+//                 if (std::find(offspring.begin(), offspring.end(), parent2.sudokunumbers[i]) == offspring.end()) {
+//                     int pos = i;
+//                     while (crossoverPoint1 <= pos && pos <= crossoverPoint2) {
+//                         pos = std::distance(parent2.sudokunumbers.begin(), std::find(parent2.sudokunumbers.begin(), parent2.sudokunumbers.end(), parent1.sudokunumbers[pos]));
+//                     }
+//                     offspring[pos] = parent2.sudokunumbers[i];
+//                 }
+//             }
+
+//             // Fill in the remaining positions with elements from parent2
+//             for (std::size_t i = 0; i < size; ++i) {
+//                 if (offspring[i] == -1) {
+//                     offspring[i] = parent2.sudokunumbers[i];
+//                 }
+//             }
+
+//             // Create the result genotype
+//             auto res=new FullPermutationGenotype(sudoku,offspring);
+//             res->validateGenotype(__LINE__);
+//             result = res;
+
+
 BaseGenotype* FullPermutationGenotype::crossover(BaseGenotype &other)
 {
     BaseGenotype* result = nullptr;
     switch (other.getGenoType())
     {
     case FullPermutation:
-        {
+    {
             FullPermutationGenotype& parent1 = *this;
             FullPermutationGenotype& parent2 = dynamic_cast<FullPermutationGenotype&>(other);
 
@@ -279,41 +338,57 @@ BaseGenotype* FullPermutationGenotype::crossover(BaseGenotype &other)
             std::mt19937 gen(rd());
             std::uniform_int_distribution<> dis(0, size - 1);
 
-            // Select two crossover points
-            int crossoverPoint1 = dis(gen);
-            int crossoverPoint2 = dis(gen);
-
-            // Ensure crossoverPoint1 < crossoverPoint2
-            if (crossoverPoint1 > crossoverPoint2) {
-                std::swap(crossoverPoint1, crossoverPoint2);
+            std::array<short,9> unusednumbers;
+            unusednumbers.fill(0);
+            for (std::size_t i = 0; i < size; ++i) 
+            {
+                if (parent1.sudokunumbers[i] == parent2.sudokunumbers[i]) 
+                {
+                    offspring[i] = parent1.sudokunumbers[i];
+                }
+                else
+                {
+                    unusednumbers[parent1.sudokunumbers[i]-1]++;
+                }
             }
-
-            // Copy the segment between the crossover points from parent1 to offspring
-            for (int i = crossoverPoint1; i <= crossoverPoint2; ++i) {
-                offspring[i] = parent1.sudokunumbers[i];
-            }
-
-            // Map the remaining elements from parent2 to offspring
-            for (int i = crossoverPoint1; i <= crossoverPoint2; ++i) {
-                if (std::find(offspring.begin(), offspring.end(), parent2.sudokunumbers[i]) == offspring.end()) {
-                    int pos = i;
-                    while (crossoverPoint1 <= pos && pos <= crossoverPoint2) {
-                        pos = std::distance(parent2.sudokunumbers.begin(), std::find(parent2.sudokunumbers.begin(), parent2.sudokunumbers.end(), parent1.sudokunumbers[pos]));
+            for (std::size_t i = 0; i < size; ++i) 
+            {
+                if (offspring[i] == -1) 
+                {
+                    //select number frm une of parents at random and insert it  
+                    std::uniform_int_distribution<> dis2(0, 1);
+                    if (dis2(gen) == 0&&unusednumbers[parent1.sudokunumbers[i]-1]>0) 
+                    {
+                        offspring[i] = parent1.sudokunumbers[i];
+                        unusednumbers[parent1.sudokunumbers[i]-1]--;
+                        
                     }
-                    offspring[pos] = parent2.sudokunumbers[i];
+                    else if(unusednumbers[parent2.sudokunumbers[i]-1]>0)
+                    {
+                        offspring[i] = parent2.sudokunumbers[i];
+                        unusednumbers[parent2.sudokunumbers[i]-1]--;
+                    }
                 }
             }
-
-            // Fill in the remaining positions with elements from parent2
-            for (std::size_t i = 0; i < size; ++i) {
-                if (offspring[i] == -1) {
-                    offspring[i] = parent2.sudokunumbers[i];
+            std::vector<short> rest;
+            for (std::size_t i = 0; i < 9; ++i) 
+            {
+                for (short j = 0; j < unusednumbers[i]; ++j) 
+                {
+                    rest.push_back(i+1);
                 }
             }
-
-            // Create the result genotype
-            result = new FullPermutationGenotype(sudoku,offspring);
-        }
+            std::shuffle(rest.begin(), rest.end(), gen);
+            for (std::size_t i = 0; i < size; ++i) 
+            {
+                if (offspring[i] == -1) 
+                {
+                    offspring[i] = rest.back();
+                    rest.pop_back();
+                }
+            }
+            result = new FullPermutationGenotype(sudoku, offspring);
+    }
     break;
     
     default:
@@ -332,9 +407,9 @@ void FullPermutationGenotype::mutate(float mutationRate)
     // Use a binomial distribution to determine the number of mutations
     std::binomial_distribution<> binom_dist(sudokunumbers.size(), mutationRate);
     size_t numMutations = binom_dist(gen)+1;
-
+    
     // If numMutations is greater than 0, shuffle a subset of the vector
-    if (numMutations > 0)
+    if (numMutations > 1)
     {
         // Create a vector of indices
         std::vector<int> indices(sudokunumbers.size());
@@ -359,9 +434,9 @@ void FullPermutationGenotype::mutate(float mutationRate)
             sudokunumbers[selectedIndices[i]] = subset[i];
         }
     }
-
     // Invalidate the evaluation
     evalSudokuValid = false;
+    validateGenotype(__LINE__);
 }
 
 void FullPermutationGenotype::fillEvalSudoku()
@@ -379,4 +454,103 @@ void FullPermutationGenotype::fillEvalSudoku()
         }
     }
     evalSudokuValid = true;
+}
+
+
+RowPermutationGenotype::RowPermutationGenotype(const Sudoku& sudoku):BaseGenotype(sudoku)
+{
+    genoType = RowPermutation;
+    evalSudokuValid = false;
+    
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    for(int i = 0; i < 9; i++)
+    {
+        std::vector<bool> remainingNumbers(9,true);
+        for(int j = 0; j < 9; j++)
+        {
+            if(sudoku[i][j] != -1)
+            {
+                remainingNumbers[sudoku[i][j]-1]=false;
+            }
+        }
+        for(int j = 0; j < 9; j++)
+        {
+            if(remainingNumbers[j])
+            {
+                rows[i].push_back(j+1);
+            }
+        }
+        std::shuffle(rows[i].begin(),rows[i].end(),gen);
+        
+    }
+}
+RowPermutationGenotype::RowPermutationGenotype(const Sudoku& sudoku, std::array<std::vector<short>,9> rows):BaseGenotype(sudoku)
+{
+    genoType = RowPermutation;
+    //use std::move
+    evalSudokuValid = false;
+    this->rows = rows;
+}
+BaseGenotype* RowPermutationGenotype::crossover(BaseGenotype &other)
+{
+    BaseGenotype* result = nullptr;
+    switch (other.getGenoType())
+    {
+        case RowPermutation:
+        {
+            RowPermutationGenotype& parent1 = *this;
+            RowPermutationGenotype& parent2 = dynamic_cast<RowPermutationGenotype&>(other);
+            //select rows at random and create new pop using that
+            // Random number generator
+            std::random_device rd;
+            std::mt19937 gen(rd());
+            std::uniform_int_distribution<> dis(0, 1);
+            std::array<std::vector<short>, 9> offspringRows;
+            // Select rows at random from the two parents
+            for (size_t i = 0; i < parent1.rows.size(); ++i) {
+                if (dis(gen) == 0) {
+                    offspringRows[i] = parent1.rows[i];
+                } else {
+                    offspringRows[i] = parent2.rows[i];
+                }
+            }
+
+            // Create the result genotype
+            result = new RowPermutationGenotype(sudoku, offspringRows);
+        }   
+        break;
+        default:
+            assert("illegal crossover" && 0);
+    }
+    return result;
+}
+void RowPermutationGenotype::mutate(float mutationRate)
+{
+    evalSudokuValid = false;
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<> dis(0, 1);
+    for (size_t i = 0; i < rows.size(); i++)
+    {
+        if (dis(gen) < mutationRate)
+        {
+            std::shuffle(rows[i].begin(), rows[i].end(), gen);
+        }
+    }
+}
+void RowPermutationGenotype::fillEvalSudoku()
+{
+    for (int i = 0; i < 9; i++) {
+        int selected=0;
+        for (int j = 0; j < 9; j++) {
+            if (sudoku[i][j] == -1) {
+                evalSudoku[i][j] = rows[i][selected++];
+            }
+            else
+            {
+                evalSudoku[i][j] = sudoku[i][j];
+            }
+        }
+    }
 }

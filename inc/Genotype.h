@@ -5,7 +5,7 @@ enum GenotypeType
 {
     SoloNum,
     FullPermutation,
-    ColPermutation,
+    RowPermutation,
     BoxPermutation
 };
 
@@ -51,6 +51,7 @@ protected:
 class FullPermutationGenotype : public BaseGenotype
 {
 public:
+    void validateGenotype(int);
     FullPermutationGenotype(const Sudoku& sudoku);
     FullPermutationGenotype(const Sudoku&, std::vector<short>);
     virtual ~FullPermutationGenotype(){};
@@ -60,4 +61,33 @@ public:
 protected:
     void fillEvalSudoku();
     std::vector<short> sudokunumbers;
+};
+
+class RowPermutationGenotype : public BaseGenotype
+{
+public:
+    RowPermutationGenotype(const Sudoku& sudoku);
+    RowPermutationGenotype(const Sudoku&, std::array<std::vector<short>,9>);
+    virtual ~RowPermutationGenotype(){};
+    BaseGenotype* crossover(BaseGenotype &other);
+    virtual void mutate(float mutationRate);
+    const std::array<std::vector<short>,9>& getRows() const { return rows; }
+protected:
+    void fillEvalSudoku();
+    std::array<std::vector<short>,9> rows;
+};
+
+
+class BoxPermutationGenotype : public BaseGenotype
+{
+public:
+    BoxPermutationGenotype(const Sudoku& sudoku);
+    BoxPermutationGenotype(const Sudoku&, std::array<std::vector<short>,9>);
+    virtual ~BoxPermutationGenotype(){};
+    BaseGenotype* crossover(BaseGenotype &other);
+    virtual void mutate(float mutationRate);
+    const std::array<std::vector<short>,9>& getRows() const { return rows; }
+protected:
+    void fillEvalSudoku();
+    std::array<std::vector<short>,9> box;
 };

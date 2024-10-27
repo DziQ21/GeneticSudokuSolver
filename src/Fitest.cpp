@@ -9,7 +9,9 @@
 Population_t TestFitestFunction(Population_t &pop,float removeRate)
 {
     Population_t result;
-    for (size_t i = 0; i < pop.size()/2; i++)
+    size_t elementsToKeep = std::ceil(pop.size() * (1 - removeRate));
+
+    for (size_t i = 0; i < elementsToKeep; i++)
     {
         result.push_back(std::move(pop[i]));
     }

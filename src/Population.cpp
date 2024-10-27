@@ -11,9 +11,9 @@
 
 
 template <typename T>
-Population<T>::Population(int size, const Sudoku& sudoku, std::function<Population_t(Population_t&,float)> fitestFunction) : fitestFunction(fitestFunction), sudoku(sudoku), size(size)
+Population<T>::Population(const Config& config, const Sudoku& sudoku, std::function<Population_t(Population_t&,float)> fitestFunction) : fitestFunction(fitestFunction), sudoku(sudoku),config(config)
 {
-    for (int i = 0; i < size; i++)
+    for (int i = 0; i < (int)config.getPopulationSize(); i++)
     {
         // make unique and push
         population.push_back(std::make_unique<T>(T(sudoku)));
@@ -87,7 +87,7 @@ void Population<T>::nextGeneration()
     std::cout << "eval finished in " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms" << std::endl;
 
     start = std::chrono::high_resolution_clock::now();
-    population = fitestFunction(population, 0.1);
+    population = fitestFunction(population, 0.2);
     end = std::chrono::high_resolution_clock::now();
     std::cout << "fitestFunction finished in " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms" << std::endl;
 
@@ -99,7 +99,7 @@ void Population<T>::nextGeneration()
     #pragma omp parallel for
     for(size_t i = 0; i < population.size(); i++)
     {
-        population[i]->mutate(0.01);
+        population[i]->mutate(0.08);
     }
     end = std::chrono::high_resolution_clock::now();
     std::cout << " mutate() finished in " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms" << std::endl;
@@ -109,15 +109,15 @@ template <typename T>
 void Population<T>::fillRestOfPopulation()
 {
     Population_t tmpPopulation;
-    tmpPopulation.reserve(size);
+    tmpPopulation.reserve(config.getPopulationSize());
     #pragma omp parallel
     {
         // Create a thread-local temporary population
         Population_t localTmpPopulation;
-        localTmpPopulation.reserve(size);
+        localTmpPopulation.reserve(config.getPopulationSize());
 
         #pragma omp for
-        for (size_t i = 0; i < (std::size_t)size - population.size(); ++i)
+        for (size_t i = 0; i < (std::size_t)config.getPopulationSize() - population.size(); ++i)
         {
             static std::random_device rd; // Obtain a random number from hardware
             static std::mt19937 eng(rd()); // Seed the generator
@@ -146,3 +146,4 @@ void Population<T>::fillRestOfPopulation()
 //its needed for some reason
 template class Population<SoloNumGenotype>;
 template class Population<FullPermutationGenotype>;
+template class Population<RowPermutationGenotype>;
