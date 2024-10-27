@@ -45,6 +45,10 @@ unsigned long parseLong(std::string param)
     return std::stoul(param);
 }
 
+float parseFloat(std::string param)
+{
+    return std::stof(param);
+}
 
 ConfigLoader::~ConfigLoader()
 {
@@ -56,6 +60,7 @@ Config::Config()
     auto bypass = [](std::string input) -> std::string {return input;};
     entries.push_back(std::unique_ptr<ConfigEntry>(new ConfigEntryImpl<std::string>("SudokuPath", bypass, sudokuPath)));
     entries.push_back(std::unique_ptr<ConfigEntry>(new ConfigEntryImpl<unsigned long>("PopulationSize",parseLong, populationSize)));
+    entries.push_back(std::unique_ptr<ConfigEntry>(new ConfigEntryImpl<float>("MutationRate",parseFloat, mutationRate)));
 }
 
 LogLevel parseLog(std::string param)

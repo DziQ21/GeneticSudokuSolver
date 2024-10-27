@@ -37,11 +37,14 @@ private:
     LogLevel logLevel;
     std::string sudokuPath;
     unsigned long populationSize;
+    float mutationRate;
     /* data */
 public:
-    const std::string& getSudokuPath() const {return sudokuPath;};
+    //getters
+    LogLevel getLogLevel() const {return logLevel;};
     unsigned long getPopulationSize() const {return populationSize;};
     void ParseEntry(std::string key,std::string value);
+    const std::string& getSudokuPath() const {return sudokuPath;};
     Config();
     ~Config(){};
     //prevent copy 
