@@ -7,27 +7,33 @@
 #include "Genotype.h"
 #include "Fitest.h"
 
-
-
-int main(void)
+int main(int argc, char *argv[])
 {
-  ConfigLoader configLoader("./Config.txt");
-  SudokuLoader sudoku(configLoader.getConfig().getSudokuPath());
+  std::unique_ptr<ConfigLoader> configLoaderPtr;
+  if (argc < 2) {
+      configLoaderPtr = std::make_unique<ConfigLoader>("./Config.txt");
+  }
+  else
+  {
+    std::string configFilePath = argv[1];
+    configLoaderPtr = std::make_unique<ConfigLoader>(configFilePath);
+  }
 
-  Population<BoxPermutationGenotype> population(configLoader.getConfig(),sudoku.getSudoku(),TournamentFitestFunction);
-  std::cout<<sudoku.sudokuToStr()<<std::endl;
-  for(int i =1; i<600; i++)
+  
+  SudokuLoader sudoku(configLoaderPtr->getConfig().getSudokuPath());
+
+  Population<BoxPermutationGenotype> population(configLoaderPtr->getConfig(), sudoku.getSudoku(), TournamentFitestFunction);
+  std::cout << sudoku.sudokuToStr() << std::endl;
+  for (int i = 1; i < 600; i++)
   {
     population.print(1);
     population.nextGeneration();
-    printf("Generation %d\n",i);
+    printf("Generation %d\n", i);
   }
   population.print(10);
-  // Population<BoxPermutationGenotype> population(configLoader.getConfig(),sudoku.getSudoku(),TestFitestFunction);
+  // Population<BoxPermutationGenotype> population(configLoader.getConfig(), sudoku.getSudoku(), TestFitestFunction);
   // population.print(1); 
   // population.nextGeneration();
-  // population.nextGeneration();
-  // population.nextGeneration();
-  // population.nextGeneration();
+
   return 0;
 }

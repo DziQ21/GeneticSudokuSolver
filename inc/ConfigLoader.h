@@ -47,8 +47,6 @@ public:
     const std::string& getSudokuPath() const {return sudokuPath;};
     Config();
     ~Config(){};
-    //prevent copy 
-    Config(const Config&) = delete;
 };
 
 class ConfigLoader
@@ -57,9 +55,10 @@ private:
     Config config;
 public:
     ConfigLoader(std::string configDir);
-    ConfigLoader()=delete;
+    ConfigLoader();
     ~ConfigLoader();
-    void loadConfig();
+    void loadConfigPath();
+    void loadConfigStr();
     const Config& getConfig() const
     {
         return config;
