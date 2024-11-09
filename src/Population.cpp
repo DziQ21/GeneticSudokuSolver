@@ -67,16 +67,19 @@ void Population<T>::print(size_t a)
     double averageEvalValue = totalEvalValue / population.size();
 
     // Print the average evaluation value
-    std::cout << "Average evaluation value: " << averageEvalValue << std::endl;
+    if(config.getLogLevel() == LogLevel::DBG)
+        std::cout << "Average evaluation value: " << averageEvalValue << std::endl;
     auto end = std::chrono::high_resolution_clock::now();
-    std::cout << "print finished in " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms" << std::endl;
+    if(config.getLogLevel() == LogLevel::DBG)
+        std::cout << "print finished in " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms" << std::endl;
 }
 
 template <typename T>
 void Population<T>::nextGeneration()
 {
     auto start = std::chrono::high_resolution_clock::now();
-    std::cout << "nextGeneration start" << std::endl;
+    if(config.getLogLevel() == LogLevel::DBG)
+        std::cout << "nextGeneration start" << std::endl;
     #pragma omp parallel for
     for(size_t i = 0; i < population.size(); i++)
     {
@@ -84,27 +87,50 @@ void Population<T>::nextGeneration()
     }
 
     auto end = std::chrono::high_resolution_clock::now();
-    std::cout << "eval finished in " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms" << std::endl;
+    if(config.getLogLevel() == LogLevel::DBG)
+        std::cout << "eval finished in " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms" << std::endl;
 
     start = std::chrono::high_resolution_clock::now();
-    population = fitestFunction(population, 0.2);
+    population = fitestFunction(population, config.getFittestRate());
     end = std::chrono::high_resolution_clock::now();
-    std::cout << "fitestFunction finished in " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms" << std::endl;
+    if(config.getLogLevel() == LogLevel::DBG)
+        std::cout << "fitestFunction finished in " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms" << std::endl;
 
     start = std::chrono::high_resolution_clock::now();
     fillRestOfPopulation();
     end = std::chrono::high_resolution_clock::now();
-    std::cout << "fillRestOfPopulation  finished in " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms" << std::endl;
+    if(config.getLogLevel() == LogLevel::DBG)
+        std::cout << "fillRestOfPopulation  finished in " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms" << std::endl;
     start = std::chrono::high_resolution_clock::now();
     #pragma omp parallel for
     for(size_t i = 0; i < population.size(); i++)
     {
-        population[i]->mutate(0.08);
+        population[i]->mutate(config.getMutationRate());
     }
     end = std::chrono::high_resolution_clock::now();
-    std::cout << " mutate() finished in " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms" << std::endl;
+    if(config.getLogLevel() == LogLevel::DBG)
+        std::cout << " mutate() finished in " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms" << std::endl;
 }
+template <typename T>
+std::tuple<float,int> Population<T>::getStats()
+{
+    #pragma omp parallel for
+    for(size_t i = 0; i < population.size(); i++)
+    {
+        population[i]->evaluate();
+    }
+    float totalEvalValue = std::accumulate(population.begin(), population.end(), 0.0, [](float sum, const std::unique_ptr<BaseGenotype> &genotype) {
+        return sum + genotype->getEvalValue();
+    });
 
+    float averageEvalValue = totalEvalValue / population.size();
+
+    auto min = std::min_element(population.begin(), population.end(), [](const std::unique_ptr<BaseGenotype> &a, const std::unique_ptr<BaseGenotype> &b) {
+            return a->getEvalValue() < b->getEvalValue();
+        });
+
+    return std::make_tuple(averageEvalValue, min->get()->getEvalValue());
+}
 template <typename T>
 void Population<T>::fillRestOfPopulation()
 {
@@ -136,7 +162,8 @@ void Population<T>::fillRestOfPopulation()
             tmpPopulation.insert(tmpPopulation.end(), std::make_move_iterator(localTmpPopulation.begin()), std::make_move_iterator(localTmpPopulation.end()));
         }
     }
-    std::cout<<"to fill "<<tmpPopulation.size()<<std::endl;
+    if(config.getLogLevel() == LogLevel::DBG)
+        std::cout<<"to fill "<<tmpPopulation.size()<<std::endl;
     for (size_t i = 0; i < population.size(); i++)
     {
         tmpPopulation.push_back(std::move(population[i]));

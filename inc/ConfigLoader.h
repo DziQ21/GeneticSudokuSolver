@@ -38,6 +38,8 @@ private:
     std::string sudokuPath;
     unsigned long populationSize;
     float mutationRate;
+    float fittestRate;
+    int ResetCounter;
     /* data */
 public:
     //getters
@@ -45,6 +47,9 @@ public:
     unsigned long getPopulationSize() const {return populationSize;};
     void ParseEntry(std::string key,std::string value);
     const std::string& getSudokuPath() const {return sudokuPath;};
+    float getMutationRate() const {return mutationRate;};
+    float getFittestRate() const {return fittestRate;};
+    int getResetCounter() const {return ResetCounter;};
     Config();
     ~Config(){};
 };
@@ -55,10 +60,10 @@ private:
     Config config;
 public:
     ConfigLoader(std::string configDir);
-    ConfigLoader();
+    ConfigLoader(){};
     ~ConfigLoader();
-    void loadConfigPath();
-    void loadConfigStr();
+    void loadConfigPath(std::string configDir);
+    void loadConfigStr(std::string configStr);
     const Config& getConfig() const
     {
         return config;
