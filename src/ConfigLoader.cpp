@@ -133,7 +133,6 @@ Config::Config()
     entries.push_back(std::unique_ptr<ConfigEntry>(new ConfigEntryImpl<float>("MutationRate",parseFloat, mutationRate)));
     entries.push_back(std::unique_ptr<ConfigEntry>(new ConfigEntryImpl<float>("FittestRate",parseFloat, fittestRate)));
     entries.push_back(std::unique_ptr<ConfigEntry>(new ConfigEntryImpl<int>("ResetCounter",parseInt, ResetCounter)));
-
 }
 
 LogLevel parseLog(std::string param)

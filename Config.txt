@@ -1,3 +1,5 @@
 LogLevel DBG
-SudokuPath ./testData/1.txt
-PopulationSize 10000
+SudokuPath ./testData/1mid.txt
+PopulationSize 1000
+MutationRate 0.2
+FittestLeft 0.5

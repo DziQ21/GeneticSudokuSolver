@@ -12,14 +12,13 @@ int main(int argc, char *argv[])
     ConfigLoader configLoader;
     if (argc < 2) {
       // configLoaderPtr = std::make_unique<ConfigLoader>("./Config.txt");
-      configLoader.loadConfigPath("./config2137.txt");
+      configLoader.loadConfigPath("./config.txt");
     }
     else
     {
       std::string configStr= argv[1];
       configLoader.loadConfigPath(configStr);
     }
-
   
     SudokuLoader sudoku(configLoader.getConfig().getSudokuPath());
     int lastValue = 9999;

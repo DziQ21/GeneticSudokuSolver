@@ -40,7 +40,6 @@ private:
     float mutationRate;
     float fittestRate;
     int ResetCounter;
-    /* data */
 public:
     //getters
     LogLevel getLogLevel() const {return logLevel;};
