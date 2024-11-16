@@ -18,6 +18,7 @@ public:
     void print(size_t a);
     void nextGeneration();
     void fillRestOfPopulation();
+    void SoftReset();
     std::tuple<float,int> getStats();
 private:
     std::function<Population_t(Population_t&,float)> fitestFunction;

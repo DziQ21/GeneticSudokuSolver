@@ -94,7 +94,7 @@ void Population<T>::nextGeneration()
     population = fitestFunction(population, config.getFittestRate());
     end = std::chrono::high_resolution_clock::now();
     if(config.getLogLevel() == LogLevel::DBG)
-        std::cout << "fitestFunction finished in " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms" << std::endl;
+        std::cout <<population.size()<< "fitestFunction finished in " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms" << std::endl;
 
     start = std::chrono::high_resolution_clock::now();
     fillRestOfPopulation();
@@ -131,6 +131,13 @@ std::tuple<float,int> Population<T>::getStats()
 
     return std::make_tuple(averageEvalValue, min->get()->getEvalValue());
 }
+
+template <typename T>
+void Population<T>::SoftReset()
+{
+    
+}
+
 template <typename T>
 void Population<T>::fillRestOfPopulation()
 {
@@ -141,7 +148,8 @@ void Population<T>::fillRestOfPopulation()
         // Create a thread-local temporary population
         Population_t localTmpPopulation;
         localTmpPopulation.reserve(config.getPopulationSize());
-
+        
+        //flag if save population or only corssover
         #pragma omp for
         for (size_t i = 0; i < (std::size_t)config.getPopulationSize() - population.size(); ++i)
         {
@@ -164,6 +172,7 @@ void Population<T>::fillRestOfPopulation()
     }
     if(config.getLogLevel() == LogLevel::DBG)
         std::cout<<"to fill "<<tmpPopulation.size()<<std::endl;
+    //flag if save population or only corssover
     for (size_t i = 0; i < population.size(); i++)
     {
         tmpPopulation.push_back(std::move(population[i]));

@@ -9,6 +9,20 @@
 #include <random>  
 #include <iostream>
 
+// Implementations of the copy constructors
+SoloNumGenotype::SoloNumGenotype(const SoloNumGenotype& other)
+    : BaseGenotype(other.sudoku), sudokunumbers(other.sudokunumbers) {genoType = SoloNum;}
+
+FullPermutationGenotype::FullPermutationGenotype(const FullPermutationGenotype& other)
+    : BaseGenotype(other.sudoku), sudokunumbers(other.sudokunumbers) {genoType = FullPermutation;}
+
+RowPermutationGenotype::RowPermutationGenotype(const RowPermutationGenotype& other)
+    : BaseGenotype(other.sudoku), rows(other.rows) { genoType = RowPermutation;}
+
+BoxPermutationGenotype::BoxPermutationGenotype(const BoxPermutationGenotype& other)
+    : BaseGenotype(other.sudoku), box(other.box) {genoType = BoxPermutation;}
+
+
 SoloNumGenotype::SoloNumGenotype(const Sudoku& sudoku):BaseGenotype(sudoku)
 {
     genoType = SoloNum;
@@ -614,6 +628,7 @@ BaseGenotype* BoxPermutationGenotype::crossover(BaseGenotype &other)
         }   
         break;
         default:
+            std::cout<<"illegal crossover"<<other.getGenoType()<<std::endl;
             assert("illegal crossover" && 0);
     }
     return result;

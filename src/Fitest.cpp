@@ -44,4 +44,31 @@ Population_t TournamentFitestFunction(Population_t &pop,float removeRate)
     return result;
 }
 
+Population_t WheelFitestFunction(Population_t &pop, float removeRate) {
+    Population_t result;
+    double sum = 0.0;
+    std::vector<double> wheel;
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    size_t elementsToKeep = static_cast<size_t>(pop.size() * (removeRate));
+    // Calculate the inverse of the evaluation values and the sum of the inverses
+    for (size_t i = 0; i < pop.size(); i++) {
+        double inverseEval = 1.0 / (static_cast<double>(pop[i]->getEvalValue())+1);
+        wheel.push_back(inverseEval);
+        sum += inverseEval;
+    }
 
+    // Perform the selection based on the inverse values
+    while (result.size() < elementsToKeep) {
+        double random = std::uniform_real_distribution<double>(0.0, sum)(gen);
+        for (size_t i = 0; i < pop.size(); i++) {
+            random -= wheel[i];
+            if (random <= 0) {
+                result.push_back(pop[i]->clone());
+                break; // Exit the loop once an element is added
+            }
+        }
+    }
+
+    return result;
+}

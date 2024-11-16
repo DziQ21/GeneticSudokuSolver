@@ -23,7 +23,7 @@ int main(int argc, char *argv[])
     SudokuLoader sudoku(configLoader.getConfig().getSudokuPath());
     int lastValue = 9999;
     int lastImprovemnt = 0;
-    auto population = std::make_unique<Population<BoxPermutationGenotype>>(configLoader.getConfig(), sudoku.getSudoku(), TournamentFitestFunction);
+    auto population = std::make_unique<Population<BoxPermutationGenotype>>(configLoader.getConfig(), sudoku.getSudoku(), WheelFitestFunction);
     if(configLoader.getConfig().getLogLevel() == LogLevel::DBG)
         std::cout << sudoku.sudokuToStr() << std::endl;
     for (int i = 1; i < 1000; i++)
