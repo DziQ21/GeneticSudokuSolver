@@ -40,8 +40,11 @@ private:
     float mutationRate;
     float fittestRate;
     int ResetCounter;
+    int multiMutation;
+    bool preserveSelection;
 public:
     //getters
+    bool getPreserveSelection() const {return preserveSelection;};
     LogLevel getLogLevel() const {return logLevel;};
     unsigned long getPopulationSize() const {return populationSize;};
     void ParseEntry(std::string key,std::string value);
@@ -49,6 +52,7 @@ public:
     float getMutationRate() const {return mutationRate;};
     float getFittestRate() const {return fittestRate;};
     int getResetCounter() const {return ResetCounter;};
+    int getMultiMutation() const {return multiMutation;};
     Config();
     ~Config(){};
 };

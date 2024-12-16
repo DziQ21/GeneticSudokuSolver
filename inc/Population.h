@@ -12,7 +12,7 @@ template <typename T>
 class Population
 {
 public: 
-    Population(const Config& config, const Sudoku& sudoku,std::function<Population_t(Population_t&,float)>);
+    Population(const Config& config, const Sudoku& sudoku,std::function<Population_t(Population_t&, std::size_t, bool, const Config &)>);
     ~Population(){};
     void evolve();
     void print(size_t a);
@@ -21,7 +21,7 @@ public:
     void SoftReset();
     std::tuple<float,int> getStats();
 private:
-    std::function<Population_t(Population_t&,float)> fitestFunction;
+    std::function<Population_t(Population_t&, std::size_t, bool, const Config &)> fitestFunction;
     const Sudoku& sudoku;
     Population_t population;
     const Config& config;

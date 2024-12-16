@@ -11,7 +11,7 @@
 
 
 template <typename T>
-Population<T>::Population(const Config& config, const Sudoku& sudoku, std::function<Population_t(Population_t&,float)> fitestFunction) : fitestFunction(fitestFunction), sudoku(sudoku),config(config)
+Population<T>::Population(const Config& config, const Sudoku& sudoku, std::function<Population_t(Population_t&, std::size_t, bool, const Config &)> fitestFunction) : fitestFunction(fitestFunction), sudoku(sudoku),config(config)
 {
     for (int i = 0; i < (int)config.getPopulationSize(); i++)
     {
@@ -91,12 +91,31 @@ void Population<T>::nextGeneration()
         std::cout << "eval finished in " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms" << std::endl;
 
     start = std::chrono::high_resolution_clock::now();
-    population = fitestFunction(population, config.getFittestRate());
+    std::size_t resultPop = config.getPopulationSize()/(config.getMultiMutation() + 1);
+    population = fitestFunction(population, resultPop, config.getPreserveSelection(), config);
     end = std::chrono::high_resolution_clock::now();
     if(config.getLogLevel() == LogLevel::DBG)
         std::cout <<population.size()<< "fitestFunction finished in " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms" << std::endl;
+    // fil to desired population size
 
+
+    //multiMutation
     start = std::chrono::high_resolution_clock::now();
+    if(config.getMultiMutation() > 0)
+    {
+        #pragma omp parallel for
+        for(size_t i = 0; i < population.size(); i++)
+        {
+            population[i]->mutate(config.getMutationRate());
+        }
+    }
+    else
+    {
+       fillRestOfPopulation();
+    }
+    
+    end = std::chrono::high_resolution_clock::now();
+
     fillRestOfPopulation();
     end = std::chrono::high_resolution_clock::now();
     if(config.getLogLevel() == LogLevel::DBG)
@@ -137,7 +156,7 @@ void Population<T>::SoftReset()
 {
     
 }
-
+//obsolete
 template <typename T>
 void Population<T>::fillRestOfPopulation()
 {

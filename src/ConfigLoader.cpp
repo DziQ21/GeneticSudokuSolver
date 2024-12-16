@@ -123,8 +123,22 @@ ConfigLoader::~ConfigLoader()
 {
 
 }
+
+bool parseBool(std::string param)
+{
+    if (param == "true") {
+        return true;
+    } else if (param == "false") {
+        return false;
+    }
+    std::cout<<"Wrong Parameter using standard false"<<std::endl;
+    return true;
+}
+
 Config::Config()
 {
+    multiMutation = 0;
+    ResetCounter = 2000;
     logLevel = ERR;
     entries.push_back(std::unique_ptr<ConfigEntry>(new ConfigEntryImpl<LogLevel>("LogLevel", parseLog, logLevel)));
     auto bypass = [](std::string input) -> std::string {return input;};
@@ -133,7 +147,11 @@ Config::Config()
     entries.push_back(std::unique_ptr<ConfigEntry>(new ConfigEntryImpl<float>("MutationRate",parseFloat, mutationRate)));
     entries.push_back(std::unique_ptr<ConfigEntry>(new ConfigEntryImpl<float>("FittestRate",parseFloat, fittestRate)));
     entries.push_back(std::unique_ptr<ConfigEntry>(new ConfigEntryImpl<int>("ResetCounter",parseInt, ResetCounter)));
+    entries.push_back(std::unique_ptr<ConfigEntry>(new ConfigEntryImpl<int>("MultiMutation",parseInt, multiMutation)));
+    entries.push_back(std::unique_ptr<ConfigEntry>(new ConfigEntryImpl<bool>("PreserveSelection",parseBool, preserveSelection)));
 }
+
+
 
 LogLevel parseLog(std::string param)
 {
