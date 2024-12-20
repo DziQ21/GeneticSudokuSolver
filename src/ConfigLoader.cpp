@@ -135,9 +135,47 @@ bool parseBool(std::string param)
     return true;
 }
 
+MultiMutationConfig parseMultiMutation(std::string param)
+{
+    MultiMutationConfig result;
+    std::istringstream iss(param);
+    std::string subparam;
+    if (!(iss >> subparam)) {
+        std::cerr << "Error parsing line: " << param << std::endl;
+        return result;
+    }
+    result.multiMutation = std::stoi(subparam);
+    if (!(iss >> subparam)) {
+        std::cerr << "Error parsing line: " << param << std::endl;
+        return result;
+    }
+    result.multiMutationCoeff = std::stof(subparam);
+    return result;
+}
+
+HarashMutationConfig parseHarash(std::string param)
+{
+    HarashMutationConfig result;
+    std::istringstream iss(param);
+    std::string subparam;
+    if (!(iss >> subparam)) {
+        std::cerr << "Error parsing line: " << param << std::endl;
+        return result;
+    }
+    
+    // printf("string\"%s\" \"%s\"  HarashMutationConfig %d %f\n", param.c_str(),subparam.c_str(),result.withoutImprovment,result.muationRate);
+    result.withoutImprovment = std::stoi(subparam);
+    if (!(iss >> subparam)) {
+        std::cerr << "Error parsing line: " << param << std::endl;
+        return result;
+    }
+    // printf("string\"%s\" \"%s\" HarashMutationConfig %d %f\n", param.c_str(),subparam.c_str(),result.withoutImprovment,result.muationRate);
+    result.muationRate = std::stof(subparam);
+    return result;
+}
+
 Config::Config()
 {
-    multiMutation = 0;
     ResetCounter = 2000;
     logLevel = ERR;
     entries.push_back(std::unique_ptr<ConfigEntry>(new ConfigEntryImpl<LogLevel>("LogLevel", parseLog, logLevel)));
@@ -147,8 +185,12 @@ Config::Config()
     entries.push_back(std::unique_ptr<ConfigEntry>(new ConfigEntryImpl<float>("MutationRate",parseFloat, mutationRate)));
     entries.push_back(std::unique_ptr<ConfigEntry>(new ConfigEntryImpl<float>("FittestRate",parseFloat, fittestRate)));
     entries.push_back(std::unique_ptr<ConfigEntry>(new ConfigEntryImpl<int>("ResetCounter",parseInt, ResetCounter)));
-    entries.push_back(std::unique_ptr<ConfigEntry>(new ConfigEntryImpl<int>("MultiMutation",parseInt, multiMutation)));
+    entries.push_back(std::unique_ptr<ConfigEntry>(new ConfigEntryImpl<MultiMutationConfig>("MultiMutationCoeff",parseMultiMutation, multiMutationConfig)));
     entries.push_back(std::unique_ptr<ConfigEntry>(new ConfigEntryImpl<bool>("PreserveSelection",parseBool, preserveSelection)));
+    entries.push_back(std::unique_ptr<ConfigEntry>(new ConfigEntryImpl<HarashMutationConfig>("MutationReset",parseHarash, mutationResetCfg)));
+    entries.push_back(std::unique_ptr<ConfigEntry>(new ConfigEntryImpl<int>("Fittest",parseInt, fitestSelection)));
+    entries.push_back(std::unique_ptr<ConfigEntry>(new ConfigEntryImpl<bool>("CrossMutation",parseBool, crossMutation)));
+    //config ostrej mutacji
 }
 
 

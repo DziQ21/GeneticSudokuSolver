@@ -1,5 +1,11 @@
-LogLevel DBG
+LogLevel ERR
 SudokuPath ./testData/1mid.txt
-PopulationSize 1000
-MutationRate 0.2
-FittestLeft 0.5
+PopulationSize 2000
+MutationRate 0.05
+FittestRate 0.1
+ResetCounter 500
+PreserveSelection true
+MultiMutationCoeff 5 7
+MutationReset 600 0.9
+Fittest 0
+CrossMutation false

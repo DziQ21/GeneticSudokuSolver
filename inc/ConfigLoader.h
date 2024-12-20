@@ -5,6 +5,16 @@
 #include <functional>
 #include "Logger.h"
 
+struct MultiMutationConfig {
+    int multiMutation;
+    float multiMutationCoeff;
+};
+
+struct HarashMutationConfig {
+    int withoutImprovment;
+    float muationRate;
+};
+
 class ConfigEntry
 {
     
@@ -40,8 +50,11 @@ private:
     float mutationRate;
     float fittestRate;
     int ResetCounter;
-    int multiMutation;
+    MultiMutationConfig multiMutationConfig;
     bool preserveSelection;
+    HarashMutationConfig mutationResetCfg;
+    int fitestSelection;
+    bool crossMutation;
 public:
     //getters
     bool getPreserveSelection() const {return preserveSelection;};
@@ -52,7 +65,11 @@ public:
     float getMutationRate() const {return mutationRate;};
     float getFittestRate() const {return fittestRate;};
     int getResetCounter() const {return ResetCounter;};
-    int getMultiMutation() const {return multiMutation;};
+    int getMultiMutation() const {return multiMutationConfig.multiMutation;};
+    float getMultiMutationCoeff() const {return multiMutationConfig.multiMutationCoeff;};
+    const HarashMutationConfig& getHarashMutationConfig() const {return mutationResetCfg;};
+    int getFittest() const {return fitestSelection;};
+    bool getCrossMutation() const {return crossMutation;};
     Config();
     ~Config(){};
 };

@@ -101,34 +101,49 @@ void Population<T>::nextGeneration()
 
     //multiMutation
     start = std::chrono::high_resolution_clock::now();
+    
     if(config.getMultiMutation() > 0)
     {
+        
+
+        // #pragma omp parallel for
+        for (size_t i = 0; i < resultPop; i++) {
+            // printf("rradzik%d %lld  %lld\n " , __LINE__,i,resultPop);
+            for (int j = 0; j < config.getMultiMutation() + 1; j++) {
+                auto clone = population[i]->clone();
+                clone->mutate(config.getMutationRate() * config.getMultiMutationCoeff());
+                // #pragma omp critical
+                {
+                    population.push_back(std::move(clone));
+                }
+            }
+            // population[i]->mutate(config.getMutationRate());
+        }
+        // printf("rradzik%d\n" , __LINE__);
+    }
+    else
+    {
+    //    fillRestOfPopulation();//not needed i gues add log if there is sufficient  elements
+        printf("exp elem %ld real elem %lld\n",config.getPopulationSize(),population.size());
+
         #pragma omp parallel for
         for(size_t i = 0; i < population.size(); i++)
         {
             population[i]->mutate(config.getMutationRate());
         }
-    }
-    else
-    {
-       fillRestOfPopulation();
-    }
-    
-    end = std::chrono::high_resolution_clock::now();
-
-    fillRestOfPopulation();
-    end = std::chrono::high_resolution_clock::now();
-    if(config.getLogLevel() == LogLevel::DBG)
-        std::cout << "fillRestOfPopulation  finished in " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms" << std::endl;
-    start = std::chrono::high_resolution_clock::now();
-    #pragma omp parallel for
-    for(size_t i = 0; i < population.size(); i++)
-    {
-        population[i]->mutate(config.getMutationRate());
+        
     }
     end = std::chrono::high_resolution_clock::now();
     if(config.getLogLevel() == LogLevel::DBG)
         std::cout << " mutate() finished in " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms" << std::endl;
+    
+    end = std::chrono::high_resolution_clock::now();
+
+    // fillRestOfPopulation();
+    end = std::chrono::high_resolution_clock::now();
+    if(config.getLogLevel() == LogLevel::DBG)
+        std::cout << "fillRestOfPopulation  finished in " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms" << std::endl;
+    
 }
 template <typename T>
 std::tuple<float,int> Population<T>::getStats()
@@ -152,9 +167,13 @@ std::tuple<float,int> Population<T>::getStats()
 }
 
 template <typename T>
-void Population<T>::SoftReset()
+void Population<T>::harashMutation(float mutationRate)
 {
-    
+    // #pragma omp parallel for
+    for (size_t i = 0; i < population.size(); i++)
+    {
+        population[i]->mutate(mutationRate);
+    }
 }
 //obsolete
 template <typename T>
