@@ -13,21 +13,40 @@ int main(int argc, char *argv[])
     ConfigLoader configLoader;
     if (argc < 2) {
       // configLoaderPtr = std::make_unique<ConfigLoader>("./Config.txt");
-      configLoader.loadConfigPath("./config.txt");
+      configLoader.loadConfigPath("./config2137.txt");
     }
     else
     {
       std::string configStr= argv[1];
       configLoader.loadConfigPath(configStr);
     }
-  
+    std::unique_ptr<BasePopulation> population;
     SudokuLoader sudoku(configLoader.getConfig().getSudokuPath());
     int lastValue = 9999;
     int lastImprovemnt = 0;
-    auto population = std::make_unique<Population<BoxPermutationGenotype>>(configLoader.getConfig(), sudoku.getSudoku(), fittestTable[configLoader.getConfig().getFittest()]);
+    switch (configLoader.getConfig().getSolverType())
+    {
+    case 0:
+        population = std::make_unique<Population<BoxPermutationGenotype>>(configLoader.getConfig(), sudoku.getSudoku(), fittestTable[configLoader.getConfig().getFittest()]);
+    
+        break;
+    case 1:
+        population = std::make_unique<Population<RowPermutationGenotype>>(configLoader.getConfig(), sudoku.getSudoku(), fittestTable[configLoader.getConfig().getFittest()]);
+    
+        break;
+    case 2:
+        population = std::make_unique<Population<FullPermutationGenotype>>(configLoader.getConfig(), sudoku.getSudoku(), fittestTable[configLoader.getConfig().getFittest()]);
+    
+        break;
+    case 3:
+        population = std::make_unique<Population<SoloNumGenotype>>(configLoader.getConfig(), sudoku.getSudoku(), fittestTable[configLoader.getConfig().getFittest()]);
+        break;
+    default:
+        break;
+    }
     if(configLoader.getConfig().getLogLevel() == LogLevel::DBG)
         std::cout << sudoku.sudokuToStr() << std::endl;
-    for (int i = 1; i < 100000; i++)
+    for (int i = 1; i < 10000; i++)
     {
         if(configLoader.getConfig().getLogLevel() == LogLevel::DBG)
             population->print(1);
@@ -56,7 +75,7 @@ int main(int argc, char *argv[])
         {
             lastValue = 9999;
             lastImprovemnt = 0;
-            // if(configLoader.getConfig().getLogLevel() == LogLevel::DBG)
+            if(configLoader.getConfig().getLogLevel() == LogLevel::DBG)
                 printf("Resetting population 1\n");
             population->harashMutation(configLoader.getConfig().getHarashMutationConfig().muationRate);
             lastImprovemnt = 0;
@@ -65,10 +84,28 @@ int main(int argc, char *argv[])
         {
             lastValue = 9999;
             lastImprovemnt = 0;
-            // if(configLoader.getConfig().getLogLevel() == LogLevel::DBG)
+            if(configLoader.getConfig().getLogLevel() == LogLevel::DBG)
                 printf("Resetting population 2\n");
+        switch (configLoader.getConfig().getSolverType())
+        {
+        case 0:
             population = std::make_unique<Population<BoxPermutationGenotype>>(configLoader.getConfig(), sudoku.getSudoku(), fittestTable[configLoader.getConfig().getFittest()]);
-            lastImprovemnt = 0;
+    
+        break;
+        case 1:
+            population = std::make_unique<Population<RowPermutationGenotype>>(configLoader.getConfig(), sudoku.getSudoku(), fittestTable[configLoader.getConfig().getFittest()]);
+        
+            break;
+        case 2:
+            population = std::make_unique<Population<FullPermutationGenotype>>(configLoader.getConfig(), sudoku.getSudoku(), fittestTable[configLoader.getConfig().getFittest()]);
+            break;
+        case 3:
+            population = std::make_unique<Population<SoloNumGenotype>>(configLoader.getConfig(), sudoku.getSudoku(), fittestTable[configLoader.getConfig().getFittest()]);
+            break;
+        default:
+            break;
+        }
+             lastImprovemnt = 0;
         }
     }
     if(configLoader.getConfig().getLogLevel() == LogLevel::DBG)

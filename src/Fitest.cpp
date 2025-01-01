@@ -80,12 +80,14 @@ Population_t TournamentFitestFunction(Population_t &pop, std::size_t resultPopul
 }
 
 Population_t WheelFitestFunction(Population_t &pop, std::size_t resultPopulation, bool preserveselection, const Config &config) {
+    
     Population_t result;
     double sum = 0.0;
     std::vector<double> wheel;
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::size_t elementsToKeep = std::ceil(pop.size() * (config.getFittestRate()));
+    std::size_t elementsToKeep = std::min((std::size_t)std::ceil(pop.size() * (config.getFittestRate())), resultPopulation);
+    // std::cout << "elementsToKeep: " <<" "<< elementsToKeep<<" " << resultPopulation <<" "<< preserveselection << std::endl;
     std::size_t toBreed = preserveselection?resultPopulation-elementsToKeep:resultPopulation;
     if(resultPopulation<elementsToKeep)
     {
@@ -100,6 +102,7 @@ Population_t WheelFitestFunction(Population_t &pop, std::size_t resultPopulation
     std::size_t parentIdx[2] = {0, 0};
     // Perform the selection based on the inverse values
     while (toBreed > 0||elementsToKeep>0) {
+        // printf("WheelFitestFunction 23 %lld %lld\n",toBreed,elementsToKeep);
         double random = std::uniform_real_distribution<double>(0.0, sum)(gen);
         for (size_t i = 0; i < pop.size(); i++) {
             random -= wheel[i];
@@ -130,7 +133,7 @@ Population_t WheelFitestFunction(Population_t &pop, std::size_t resultPopulation
         }
         
     }
-
+    printf("WheelFitestFunction end\n");
     return result;
 }
 
@@ -141,7 +144,7 @@ Population_t ExponentWheelFitestFunction(Population_t &pop, std::size_t resultPo
     std::vector<double> wheel;
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::size_t elementsToKeep = std::ceil(pop.size() * (config.getFittestRate()));
+    std::size_t elementsToKeep = std::min((std::size_t)std::ceil(pop.size() * (config.getFittestRate())), resultPopulation);
     std::size_t toBreed = preserveselection?resultPopulation-elementsToKeep:resultPopulation;
     if(resultPopulation<elementsToKeep)
     {

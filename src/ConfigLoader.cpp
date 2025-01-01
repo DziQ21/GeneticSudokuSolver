@@ -126,13 +126,16 @@ ConfigLoader::~ConfigLoader()
 
 bool parseBool(std::string param)
 {
+    // Convert the input string to lowercase
+    std::transform(param.begin(), param.end(), param.begin(), ::tolower);
+
     if (param == "true") {
         return true;
     } else if (param == "false") {
         return false;
     }
-    std::cout<<"Wrong Parameter using standard false"<<std::endl;
-    return true;
+    std::cout << "Wrong Parameter using standard false" << std::endl;
+    return false;
 }
 
 MultiMutationConfig parseMultiMutation(std::string param)
@@ -190,7 +193,7 @@ Config::Config()
     entries.push_back(std::unique_ptr<ConfigEntry>(new ConfigEntryImpl<HarashMutationConfig>("MutationReset",parseHarash, mutationResetCfg)));
     entries.push_back(std::unique_ptr<ConfigEntry>(new ConfigEntryImpl<int>("Fittest",parseInt, fitestSelection)));
     entries.push_back(std::unique_ptr<ConfigEntry>(new ConfigEntryImpl<bool>("CrossMutation",parseBool, crossMutation)));
-    //config ostrej mutacji
+    entries.push_back(std::unique_ptr<ConfigEntry>(new ConfigEntryImpl<int>("SolverType",parseInt, solverType)));
 }
 
 

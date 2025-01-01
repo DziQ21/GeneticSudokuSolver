@@ -55,6 +55,7 @@ private:
     HarashMutationConfig mutationResetCfg;
     int fitestSelection;
     bool crossMutation;
+    int solverType;
 public:
     //getters
     bool getPreserveSelection() const {return preserveSelection;};
@@ -70,6 +71,7 @@ public:
     const HarashMutationConfig& getHarashMutationConfig() const {return mutationResetCfg;};
     int getFittest() const {return fitestSelection;};
     bool getCrossMutation() const {return crossMutation;};
+    int getSolverType() const {return solverType;};
     Config();
     ~Config(){};
 };
