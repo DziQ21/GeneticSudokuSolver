@@ -17,6 +17,7 @@ public:
     virtual void fillRestOfPopulation() = 0;
     virtual void harashMutation(float) = 0;
     virtual std::tuple<float,int> getStats()=0;
+    virtual void performMultiMutation(size_t resultPop)=0;
 };
 
 template <typename T>
@@ -31,6 +32,7 @@ public:
     void fillRestOfPopulation();
     void harashMutation(float);
     std::tuple<float,int> getStats();
+    void performMultiMutation(size_t resultPop);
 private:
     std::function<Population_t(Population_t&, std::size_t, bool, const Config &)> fitestFunction;
     const Sudoku& sudoku;

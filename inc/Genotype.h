@@ -1,6 +1,7 @@
 #pragma once
 #include "SudokuLoader.h"
 #include <memory>
+#include <array>
 
 enum GenotypeType
 {
@@ -15,7 +16,7 @@ class BaseGenotype
 public:
     BaseGenotype(const Sudoku& sudoku): sudoku(sudoku), evalSudokuValid(false) {};
     virtual ~BaseGenotype() {};
-    virtual void mutate(float mutationRate) = 0;
+    virtual void mutate(float mutationRate,bool) = 0;
     virtual BaseGenotype* crossover(BaseGenotype& other) = 0;
     void evaluate();
     void print();
@@ -23,6 +24,7 @@ public:
     int getEvalValue() const { return evalValue; }
     GenotypeType getGenoType() const { return genoType; }
     virtual std::unique_ptr<BaseGenotype> clone() const = 0;
+    virtual std::array<BaseGenotype*,2> multiCrossover(BaseGenotype& other){return {crossover(other),crossover(other)};};
 
 protected:
     GenotypeType genoType;
@@ -44,7 +46,7 @@ public:
     SoloNumGenotype(const SoloNumGenotype& other); // Copy constructor
     virtual ~SoloNumGenotype();
     BaseGenotype* crossover(BaseGenotype &other);
-    virtual void mutate(float mutationRate);
+    virtual void mutate(float mutationRate, bool);
     std::vector<short> getNumbers() const { return sudokunumbers; }
     virtual std::unique_ptr<BaseGenotype> clone() const { return std::make_unique<SoloNumGenotype>(*this); }
 protected:
@@ -61,7 +63,7 @@ public:
     FullPermutationGenotype(const FullPermutationGenotype& other); // Copy constructor
     virtual ~FullPermutationGenotype() {};
     BaseGenotype* crossover(BaseGenotype &other);
-    virtual void mutate(float mutationRate);
+    virtual void mutate(float mutationRate, bool);
     std::vector<short> getNumbers() const { return sudokunumbers; }
     virtual std::unique_ptr<BaseGenotype> clone() const { return std::make_unique<FullPermutationGenotype>(*this); }
 protected:
@@ -77,7 +79,7 @@ public:
     RowPermutationGenotype(const RowPermutationGenotype& other); // Copy constructor
     virtual ~RowPermutationGenotype() {};
     BaseGenotype* crossover(BaseGenotype &other);
-    virtual void mutate(float mutationRate);
+    virtual void mutate(float mutationRate, bool);
     const std::array<std::vector<short>,9>& getRows() const { return rows; }
     virtual std::unique_ptr<BaseGenotype> clone() const { return std::make_unique<RowPermutationGenotype>(*this); }
 protected:
@@ -93,9 +95,10 @@ public:
     BoxPermutationGenotype(const BoxPermutationGenotype& other); // Copy constructor
     virtual ~BoxPermutationGenotype() {};
     BaseGenotype* crossover(BaseGenotype &other);
-    virtual void mutate(float mutationRate);
+    virtual void mutate(float mutationRate, bool);
     const std::array<std::vector<short>,9>& getBox() const { return box; }
     virtual std::unique_ptr<BaseGenotype> clone() const { return std::make_unique<BoxPermutationGenotype>(*this); }
+    virtual std::array<BaseGenotype*,2> multiCrossover(BaseGenotype& other);
 protected:
     void fillEvalSudoku();
     std::array<std::vector<short>,9> box;

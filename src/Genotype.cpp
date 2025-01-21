@@ -125,7 +125,7 @@ std::string BaseGenotype::getPrintStr()
     
     return str;
 }
-void SoloNumGenotype::mutate(float mutationRate)
+void SoloNumGenotype::mutate(float mutationRate,bool exp)
 {
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -410,7 +410,7 @@ BaseGenotype* FullPermutationGenotype::crossover(BaseGenotype &other)
 }
 
 //TODO optimize probably
-void FullPermutationGenotype::mutate(float mutationRate)
+void FullPermutationGenotype::mutate(float mutationRate, bool exp)
 {
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -533,7 +533,7 @@ BaseGenotype* RowPermutationGenotype::crossover(BaseGenotype &other)
     }
     return result;
 }
-void RowPermutationGenotype::mutate(float mutationRate)
+void RowPermutationGenotype::mutate(float mutationRate,bool exp)
 {
     evalSudokuValid = false;
     std::random_device rd;
@@ -633,20 +633,60 @@ BaseGenotype* BoxPermutationGenotype::crossover(BaseGenotype &other)
     }
     return result;
 }
-void BoxPermutationGenotype::mutate(float mutationRate)
+void BoxPermutationGenotype::mutate(float mutationRate,bool exp)
 {
     evalSudokuValid = false;
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::uniform_real_distribution<> dis(0, 1);
-    for (size_t i = 0; i < box.size(); i++)
+    if(exp)
     {
-        if (dis(gen) < mutationRate)
+        std::uniform_real_distribution<> dis(0, 1);
+        for(size_t i = 0; i < box.size(); i++)
         {
-            std::shuffle(box[i].begin(), box[i].end(), gen);
+            if (dis(gen) < mutationRate)
+            {
+                std::shuffle(box[i].begin(), box[i].end(), gen);
+            }
+        }
+    }
+    else
+    {
+        std::uniform_real_distribution<> dis(0, 1);
+        for (size_t i = 0; i < box.size(); i++)
+        {
+            if (dis(gen) < mutationRate)
+            {
+                std::shuffle(box[i].begin(), box[i].end(), gen);
+            }
         }
     }
 }
+
+void shufflePart(std::vector<short>& part, std::mt19937& gen)
+{
+    std::vector<int> indices(part.size());
+    std::iota(indices.begin(), indices.end(), 0);
+    std::shuffle(indices.begin(), indices.end(), gen);
+
+    // Select number from 1 to 9 at random
+    std::uniform_int_distribution<> dis(0, part.size() - 1);
+    std::size_t numMutations = dis(gen) + 1;
+    std::vector<int> selectedIndices(indices.begin(), indices.begin() + numMutations);
+
+    std::vector<int> subset;
+    for (int index : selectedIndices)
+    {
+        subset.push_back(part[index]);
+    }
+    std::shuffle(subset.begin(), subset.end(), gen);
+
+    // Place the shuffled subset back into sudokunumbers
+    for (size_t i = 0; i < selectedIndices.size(); ++i)
+    {
+        part[selectedIndices[i]] = subset[i];
+    }
+}
+
 void BoxPermutationGenotype::fillEvalSudoku()
 {
     std::size_t currBox = 0;
@@ -669,4 +709,106 @@ void BoxPermutationGenotype::fillEvalSudoku()
     }
 
     evalSudokuValid = true;
+}
+
+std::array<BaseGenotype*, 2> BoxPermutationGenotype::multiCrossover(BaseGenotype &other)
+{
+    std::array<BaseGenotype*, 2> result = {nullptr, nullptr};
+    switch (other.getGenoType())
+    {
+        case BoxPermutation:
+        {
+            BoxPermutationGenotype& parent1 = *this;
+            BoxPermutationGenotype& parent2 = dynamic_cast<BoxPermutationGenotype&>(other);
+
+            // Initialize offspring
+            std::array<std::vector<short>, 9> offspringRows[2];
+            for (int i = 0; i < 9; ++i) {
+                offspringRows[0][i].resize(parent1.box[i].size(), -1);
+                offspringRows[1][i].resize(parent1.box[i].size(), -1);
+            }
+
+            // Perform cycle crossover
+            for (int row = 0; row < 9; ++row) {
+                std::vector<short> copy_p1 = parent1.box[row];
+                std::vector<short> copy_p2 = parent2.box[row];
+                std::vector<short>& p1 = parent1.box[row];
+                std::vector<short>& p2 = parent2.box[row];
+                std::vector<short>& o1 = offspringRows[0][row];
+                std::vector<short>& o2 = offspringRows[1][row];
+
+                bool swap = true;
+                std::size_t count = 0;
+                std::size_t pos = 0;
+                while (count < p1.size()) {
+                    for(std::size_t i = 0; i < p1.size(); ++i) {
+                        if(o1[i] == -1)
+                        {
+                            pos = i;
+                            break;
+                        }
+                    }
+                    if(swap)
+                    {
+                        while (true)
+                        {
+                            o1[pos] = p1[pos];
+                            count++;
+                            pos = std::distance(p2.begin(), std::find(p2.begin(), p2.end(), p1[pos]));
+                            if (copy_p1[pos] == -1) {
+                                swap = !swap;
+                                break;
+                            }
+                            copy_p1[pos] = -1;
+                        }
+                    }
+                    else
+                    {
+                        while (true)
+                        {
+                            o1[pos] = p2[pos];
+                            count++;
+                            pos = std::distance(p1.begin(), std::find(p1.begin(), p1.end(), p2[pos]));
+                            if (copy_p2[pos] == -1) {
+                                swap = !swap;
+                                break;
+                            }
+                            copy_p2[pos] = -1;
+                        }
+                    }
+                }
+                for(std::size_t i = 0; i < p1.size(); ++i) {
+                    if(o1[i] == p1[i])
+                    {
+                        o2[i] = p2[i];
+                    }
+                    else
+                    {
+                        o2[i] = p1[i];
+                    }
+                }
+                for(std::size_t i = 0; i < p1.size(); ++i) {
+                    if(o1[i] == -1)
+                    {
+                        if(copy_p1[i] == -1)
+                        {
+                            o1[i] = p2[i];
+                        }
+                        else
+                        {
+                            o1[i] = p1[i];
+                        }
+                    }
+                }
+
+            }
+            result[0] = new BoxPermutationGenotype(sudoku, offspringRows[0]);
+            result[1] = new BoxPermutationGenotype(sudoku, offspringRows[1]);
+        }
+        break;
+        default:
+            std::cout << "illegal crossover" << other.getGenoType() << std::endl;
+            assert("illegal crossover" && 0);
+    }
+    return result;
 }

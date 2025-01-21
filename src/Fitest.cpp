@@ -32,19 +32,28 @@ Population_t TournamentFitestFunction(Population_t &pop, std::size_t resultPopul
     size_t tournamentSize = std::max(2, int(1 / removeRate));
     int tobreed;
 
-    while (!pop.empty()) 
+    #pragma omp parallel
     {
-        Population_t tournamentParticipants;
-        for (size_t j=0; j < tournamentSize && !pop.empty(); ++j) {
-            tournamentParticipants.push_back(std::move(pop.back()));
-            pop.pop_back();
+        Population_t thread_savedpop;
+        #pragma omp for nowait
+        for (size_t i = 0; i < pop.size(); i += tournamentSize) {
+            Population_t tournamentParticipants;
+            for (size_t j = 0; j < tournamentSize && i + j < pop.size(); ++j) {
+                tournamentParticipants.push_back(std::move(pop[i + j]));
+            }
+            auto fittest = std::min_element(tournamentParticipants.begin(), tournamentParticipants.end(),
+                                            [](const std::unique_ptr<BaseGenotype> &a, const std::unique_ptr<BaseGenotype> &b) {
+                                                return a->getEvalValue() < b->getEvalValue();
+                                            });
+            if (fittest != tournamentParticipants.end()) {
+                thread_savedpop.push_back(std::move(*fittest));
+            }
         }
-        auto fittest = std::min_element(tournamentParticipants.begin(), tournamentParticipants.end(),
-                                         [](const std::unique_ptr<BaseGenotype> &a, const std::unique_ptr<BaseGenotype> &b) {
-                                             return a->getEvalValue() < b->getEvalValue();
-                                         });
-                                         //typedef std::vector<std::unique_ptr<BaseGenotype>> Population_t;
-        savedpop.push_back(std::move(*fittest));
+
+        #pragma omp critical
+        {
+            savedpop.insert(savedpop.end(), std::make_move_iterator(thread_savedpop.begin()), std::make_move_iterator(thread_savedpop.end()));
+        }
     }
     
     if (preserveselection) {
@@ -73,8 +82,17 @@ Population_t TournamentFitestFunction(Population_t &pop, std::size_t resultPopul
     for (int i = 0; i < tobreed; i++) {
         auto parent1 = savedpop[dist(gen)].get();
         auto parent2 = savedpop[dist(gen)].get();
-        auto tmp = std::unique_ptr<BaseGenotype>(parent1->crossover(*parent2));
-        result.push_back(std::move(tmp));
+        if (tobreed-i>2&&config.getMultiCrossover())
+        {
+            std::array<BaseGenotype*,2> tmp = parent1->multiCrossover(*parent2);
+            result.push_back(std::unique_ptr<BaseGenotype>(tmp[0]));
+            result.push_back(std::unique_ptr<BaseGenotype>(tmp[1]));
+            i++;
+        }
+        else{
+            auto tmp = std::unique_ptr<BaseGenotype>(parent1->crossover(*parent2));
+            result.push_back(std::move(tmp));
+        }
     }
     return result;
 }
@@ -93,6 +111,14 @@ Population_t WheelFitestFunction(Population_t &pop, std::size_t resultPopulation
     {
         elementsToKeep = resultPopulation;
     }
+    std::sort(pop.begin(), pop.end(), [](const std::unique_ptr<BaseGenotype> &a, const std::unique_ptr<BaseGenotype> &b) {
+        return a->getEvalValue() < b->getEvalValue();
+    });
+    result.reserve(resultPopulation);
+    //copy n best elems
+    for (size_t i = 0; i < elementsToKeep; i++) {
+        result.push_back(std::move(pop[i]->clone()));
+    }
     // Calculate the inverse of the evaluation values and the sum of the inverses
     for (size_t i = 0; i < pop.size(); i++) {
         double inverseEval = 200-(static_cast<double>(pop[i]->getEvalValue()));
@@ -100,8 +126,9 @@ Population_t WheelFitestFunction(Population_t &pop, std::size_t resultPopulation
         sum += inverseEval;
     }
     std::size_t parentIdx[2] = {0, 0};
+
     // Perform the selection based on the inverse values
-    while (toBreed > 0||elementsToKeep>0) {
+    while (toBreed > 0) {
         // printf("WheelFitestFunction 23 %lld %lld\n",toBreed,elementsToKeep);
         double random = std::uniform_real_distribution<double>(0.0, sum)(gen);
         for (size_t i = 0; i < pop.size(); i++) {
@@ -119,21 +146,26 @@ Population_t WheelFitestFunction(Population_t &pop, std::size_t resultPopulation
                 break;
             }
         }
-        if(elementsToKeep>0)
-        {
-            elementsToKeep--;
-            result.push_back(pop[parentIdx[0]].get()->clone());
-        }
         if(toBreed>0)
         {
             //some experimental crossover????
-            toBreed--;
-            auto tmp = std::unique_ptr<BaseGenotype>(pop[parentIdx[0]].get()->crossover(*pop[parentIdx[1]].get()));
-            result.push_back(std::move(tmp));
+            if (toBreed>1&&config.getMultiCrossover())
+            {
+                toBreed-=2;
+                std::array<BaseGenotype*,2> tmp = pop[parentIdx[0]].get()->multiCrossover(*pop[parentIdx[1]].get());
+                result.push_back(std::unique_ptr<BaseGenotype>(tmp[0]));
+                result.push_back(std::unique_ptr<BaseGenotype>(tmp[1]));
+            }
+            else
+            {
+                toBreed--;
+                auto tmp = std::unique_ptr<BaseGenotype>(pop[parentIdx[0]].get()->crossover(*pop[parentIdx[1]].get()));
+                result.push_back(std::move(tmp));
+            }
+            
         }
         
     }
-    printf("WheelFitestFunction end\n");
     return result;
 }
 
@@ -150,16 +182,24 @@ Population_t ExponentWheelFitestFunction(Population_t &pop, std::size_t resultPo
     {
         elementsToKeep = resultPopulation;
     }
+    std::sort(pop.begin(), pop.end(), [](const std::unique_ptr<BaseGenotype> &a, const std::unique_ptr<BaseGenotype> &b) {
+        return a->getEvalValue() < b->getEvalValue();
+    });
+    result.reserve(resultPopulation);
+    //copy n best elems
+    for (size_t i = 0; i < elementsToKeep; i++) {
+        result.push_back(std::move(pop[i]->clone()));
+    }
     // Calculate the inverse of the evaluation values and the sum of the inverses
     for (size_t i = 0; i < pop.size(); i++) {
         //calculate exponent of the evaluation value
-        double inverseEval = pow(-(static_cast<double>(pop[i]->getEvalValue())),10);
+        double inverseEval = pow(2,-(static_cast<double>(pop[i]->getEvalValue())));
         wheel.push_back(inverseEval);
         sum += inverseEval;
     }
     std::size_t parentIdx[2] = {0, 0};
     // Perform the selection based on the inverse values
-    while (toBreed > 0||elementsToKeep>0) {
+    while (toBreed > 0) {
         double random = std::uniform_real_distribution<double>(0.0, sum)(gen);
         for (size_t i = 0; i < pop.size(); i++) {
             random -= wheel[i];
@@ -176,17 +216,21 @@ Population_t ExponentWheelFitestFunction(Population_t &pop, std::size_t resultPo
                 break;
             }
         }
-        if(elementsToKeep>0)
-        {
-            elementsToKeep--;
-            result.push_back(pop[parentIdx[0]].get()->clone());
-        }
         if(toBreed>0)
         {
-            //some experimental crossover????
-            toBreed--;
-            auto tmp = std::unique_ptr<BaseGenotype>(pop[parentIdx[0]].get()->crossover(*pop[parentIdx[1]].get()));
-            result.push_back(std::move(tmp));
+            if (toBreed>1&&config.getMultiCrossover())
+            {
+                toBreed=toBreed-2;
+                std::array<BaseGenotype*,2> tmp = pop[parentIdx[0]].get()->multiCrossover(*pop[parentIdx[1]].get());
+                result.push_back(std::unique_ptr<BaseGenotype>(tmp[0]));
+                result.push_back(std::unique_ptr<BaseGenotype>(tmp[1]));
+            }
+            else
+            {
+                toBreed--;
+                auto tmp = std::unique_ptr<BaseGenotype>(pop[parentIdx[0]].get()->crossover(*pop[parentIdx[1]].get()));
+                result.push_back(std::move(tmp));
+            }
         }
         
     }

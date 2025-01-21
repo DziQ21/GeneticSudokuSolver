@@ -1,4 +1,3 @@
-
 #include <vector>
 #include "Genotype.h"
 #include "SudokuLoader.h"
@@ -8,7 +7,7 @@
 #include <random>
 #include <iostream>
 #include <chrono>
-
+#include <omp.h>
 
 template <typename T>
 Population<T>::Population(const Config& config, const Sudoku& sudoku, std::function<Population_t(Population_t&, std::size_t, bool, const Config &)> fitestFunction) : fitestFunction(fitestFunction), sudoku(sudoku),config(config)
@@ -96,30 +95,13 @@ void Population<T>::nextGeneration()
     end = std::chrono::high_resolution_clock::now();
     if(config.getLogLevel() == LogLevel::DBG)
         std::cout <<population.size()<< "fitestFunction finished in " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms" << std::endl;
-    // fil to desired population size
-
-
     //multiMutation
     start = std::chrono::high_resolution_clock::now();
     
+    population.reserve(config.getPopulationSize());
     if(config.getMultiMutation() > 0)
     {
-        
-
-        // #pragma omp parallel for
-        for (size_t i = 0; i < resultPop; i++) {
-            // printf("rradzik%d %lld  %lld\n " , __LINE__,i,resultPop);
-            for (int j = 0; j < config.getMultiMutation() + 1; j++) {
-                auto clone = population[i]->clone();
-                clone->mutate(config.getMutationRate() * config.getMultiMutationCoeff());
-                // #pragma omp critical
-                {
-                    population.push_back(std::move(clone));
-                }
-            }
-            // population[i]->mutate(config.getMutationRate());
-        }
-        // printf("rradzik%d\n" , __LINE__);
+        performMultiMutation(resultPop);
     }
     else
     {
@@ -129,7 +111,7 @@ void Population<T>::nextGeneration()
         #pragma omp parallel for
         for(size_t i = 0; i < population.size(); i++)
         {
-            population[i]->mutate(config.getMutationRate());
+            population[i]->mutate(config.getMutationRate(),config.getExperimentalMutation());
         }
         
     }
@@ -172,7 +154,7 @@ void Population<T>::harashMutation(float mutationRate)
     // #pragma omp parallel for
     for (size_t i = 0; i < population.size(); i++)
     {
-        population[i]->mutate(mutationRate);
+        population[i]->mutate(mutationRate, config.getExperimentalMutation());
     }
 }
 //obsolete
@@ -216,6 +198,32 @@ void Population<T>::fillRestOfPopulation()
         tmpPopulation.push_back(std::move(population[i]));
     }
     population = std::move(tmpPopulation);
+}
+
+template <typename T>
+void Population<T>::performMultiMutation(size_t resultPop) {
+    std::vector<Population_t> thread_private_populations(omp_get_max_threads());
+
+    #pragma omp parallel
+    {
+        int thread_id = omp_get_thread_num();
+        Population_t& local_population = thread_private_populations[thread_id];
+
+        #pragma omp for nowait
+        for (size_t i = 0; i < resultPop; i++) {
+            for (int j = 0; j < config.getMultiMutation() + 1; j++) {
+                auto clone = population[i]->clone();
+                clone->mutate(config.getMutationRate() * config.getMultiMutationCoeff(), config.getExperimentalMutation());
+                local_population.push_back(std::move(clone));
+            }
+            population[i]->mutate(config.getMutationRate(), config.getExperimentalMutation());
+        }
+    }
+    
+    // Merge thread-private populations into the main population
+    for (auto& thread_population : thread_private_populations) {
+        population.insert(population.end(), std::make_move_iterator(thread_population.begin()), std::make_move_iterator(thread_population.end()));
+    }
 }
 //its needed for some reason
 template class Population<SoloNumGenotype>;

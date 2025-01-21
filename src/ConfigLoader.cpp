@@ -192,8 +192,10 @@ Config::Config()
     entries.push_back(std::unique_ptr<ConfigEntry>(new ConfigEntryImpl<bool>("PreserveSelection",parseBool, preserveSelection)));
     entries.push_back(std::unique_ptr<ConfigEntry>(new ConfigEntryImpl<HarashMutationConfig>("MutationReset",parseHarash, mutationResetCfg)));
     entries.push_back(std::unique_ptr<ConfigEntry>(new ConfigEntryImpl<int>("Fittest",parseInt, fitestSelection)));
-    entries.push_back(std::unique_ptr<ConfigEntry>(new ConfigEntryImpl<bool>("CrossMutation",parseBool, crossMutation)));
+    entries.push_back(std::unique_ptr<ConfigEntry>(new ConfigEntryImpl<bool>("AdaptiveMutation",parseBool, adaptiveMutation)));
     entries.push_back(std::unique_ptr<ConfigEntry>(new ConfigEntryImpl<int>("SolverType",parseInt, solverType)));
+    entries.push_back(std::unique_ptr<ConfigEntry>(new ConfigEntryImpl<bool>("MultiCrossover",parseBool, multiCrossover)));
+     entries.push_back(std::unique_ptr<ConfigEntry>(new ConfigEntryImpl<bool>("ExperimentMutation",parseBool, experimentalMutation)));
 }
 
 

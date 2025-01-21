@@ -54,8 +54,10 @@ private:
     bool preserveSelection;
     HarashMutationConfig mutationResetCfg;
     int fitestSelection;
-    bool crossMutation;
     int solverType;
+    bool adaptiveMutation;
+    bool multiCrossover;
+    bool experimentalMutation;
 public:
     //getters
     bool getPreserveSelection() const {return preserveSelection;};
@@ -70,8 +72,10 @@ public:
     float getMultiMutationCoeff() const {return multiMutationConfig.multiMutationCoeff;};
     const HarashMutationConfig& getHarashMutationConfig() const {return mutationResetCfg;};
     int getFittest() const {return fitestSelection;};
-    bool getCrossMutation() const {return crossMutation;};
     int getSolverType() const {return solverType;};
+    bool getAdaptiveMutation() const {return adaptiveMutation;};
+    bool getMultiCrossover() const {return multiCrossover;};
+    bool getExperimentalMutation() const {return experimentalMutation;};
     Config();
     ~Config(){};
 };
