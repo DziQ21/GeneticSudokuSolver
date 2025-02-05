@@ -82,6 +82,7 @@ public:
     virtual void mutate(float mutationRate, bool);
     const std::array<std::vector<short>,9>& getRows() const { return rows; }
     virtual std::unique_ptr<BaseGenotype> clone() const { return std::make_unique<RowPermutationGenotype>(*this); }
+    virtual std::array<BaseGenotype*,2> multiCrossover(BaseGenotype& other);
 protected:
     void fillEvalSudoku();
     std::array<std::vector<short>,9> rows;

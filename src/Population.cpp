@@ -94,7 +94,7 @@ void Population<T>::nextGeneration()
     population = fitestFunction(population, resultPop, config.getPreserveSelection(), config);
     end = std::chrono::high_resolution_clock::now();
     if(config.getLogLevel() == LogLevel::DBG)
-        std::cout <<population.size()<< "fitestFunction finished in " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms" << std::endl;
+        std::cout << "fitestFunction finished in " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms" << std::endl;
     //multiMutation
     start = std::chrono::high_resolution_clock::now();
     

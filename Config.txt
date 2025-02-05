@@ -1,11 +1,14 @@
-LogLevel ERR
-SudokuPath ./testData/1mid.txt
-PopulationSize 2000
-MutationRate 0.05
-FittestRate 0.1
-ResetCounter 500
+LogLevel DBG
+SudokuPath ./testData/1.txt
+PopulationSize 1000
+MutationRate 0.08
+FittestRate 0.05
+ResetCounter 8000
 PreserveSelection true
-MultiMutationCoeff 5 7
-MutationReset 600 0.9
-Fittest 0
-CrossMutation false
+MultiMutationCoeff 8 4
+MutationReset 500 0.8
+Fittest 1
+AdaptiveMutation false
+SolverType 0
+MultiCrossover true
+ExperimentMutation true

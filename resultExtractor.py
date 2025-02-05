@@ -40,14 +40,15 @@ def isConfigValid(config):
         return False
     if mut_res_num == 0 and mut_res_coeff != 0:
         return False
-    if reset < mut_res_num:
+    # if reset < mut_res_num:
+    #     return False
+    if pop_size < 250:
         return False
-
+    if reset ==20:
+        return False
     if preserve_selection == "true":
         if fit_rate+multimut_pop*fit_rate>1:
             return False
-    if solver_type == 2:
-        return False
     return True
 
 print(f"Starting...{datetime.now()}")
@@ -70,23 +71,24 @@ PreserveSelection {preserve_selection}
 MultiMutationCoeff {multimut_pop} {multi_mut_coeff}
 MutationReset {mut_res_num} {mut_res_coeff}
 Fittest {fittest}
-CrossMutation {cross_mut}
-SolverType {solver_type}"""
+SolverType {solver_type}
+MultiCrossover true
+ExperimentMutation true"""
 
 
-population_size = [100, 200, 400, 500]
-mutation_rate = [0.1, 0.08, 0.06, 0.02, 0.15]
-fittest_rate = [0.2, 0.3, 0.4, 0.5]
-reset_counter = [100, 200, 20, 50, 500,700]
-preserve_selection = [True, False]
-multimut_pop = [0, 2, 4, 5]
-multi_mut_coeff = [3, 4, 6, 7]
-mut_res_num = [50, 150, 200, 350]
-mut_res_coeff = [0.7, 0.8, 0.9]
-fittest = [1, 2, 0]
+population_size = [1000]
+mutation_rate = [0.05]
+fittest_rate = [0.05]
+reset_counter = [8000]
+preserve_selection = [True]
+multimut_pop = [8]
+multi_mut_coeff = [4]
+mut_res_num = [500]
+mut_res_coeff = [0.8]
+fittest = [0]
 cross_mut = [False]
-solver_type = [0, 1, 2, 3]
-sudoku_path = ["./testData/1mid.txt","./testData/1.txt","./testData/1.hard"]
+solver_type = [0]
+sudoku_path = ["./testData/1.txt","./testData/1mid.txt","./testData/1hard.txt","./testData/solverhard.txt"]
 
 # Generate all combinations of parameters
 combinations = list(itertools.product(sudoku_path, population_size, mutation_rate, fittest_rate, reset_counter,preserve_selection
@@ -98,17 +100,17 @@ results = []
 # Counter to track the number of runs
 run_counter = 0
 save_interval = 15  # Save every 30 runs
-
+filename="C:\\inz\\GeneticSudokuSolver\\rowpermutationtornament.csv"
 # Check if results.csv exists and load existing results
-if os.path.exists("C:\\inz\\GeneticSudokuSolver\\resultsnew.csv"):
-    df_existing = pd.read_csv("C:\\inz\\GeneticSudokuSolver\\resultsnew.csv")
+if os.path.exists(filename):
+    df_existing = pd.read_csv(filename)
     results = df_existing.to_dict('records')
     last_run = df_existing.iloc[-1]
     print(combinations[0])
     last_combination = (last_run['sudoku_path'], last_run['population_size'], last_run['mutation_rate'], last_run['fittest_rate'], last_run['reset_counter'], last_run['preserve_selection'], last_run['multimut_pop'], last_run['multi_mut_coeff'], last_run['mut_res_num'], last_run['mut_res_coeff'], last_run['fittest'], last_run['cross_mut'], last_run['solver_type'])
     last_iteration = last_run['iteration']
     print(last_combination)
-    print(combinations[200])
+    # print(combinations[200])
     start_index = combinations.index(last_combination)
     print(f"Loaded {len(results)} existing results. Last run: {last_combination}, iteration {last_iteration}")
     start_iteration = last_iteration + 1
@@ -138,8 +140,8 @@ for index in range(start_index, len(combinations)):
         cross_mut=cross_mut,
         solver_type=solver_type
     )
-    for i in range(start_iteration if index == start_index else 1, 51):
-        print(f"\rProcessing combination , {path}, {pop_size}, {mut_rate}, {fit_rate}, {reset}, iteration {i}/100   {run_counter}  left:{index/len(combinations)} ", end="")
+    for i in range(start_iteration if index == start_index else 1, 101):
+        print(f"\rProcessing combination , {path}, {pop_size}, {mut_rate}, {fit_rate}, {reset}, iteration {i}/5   {run_counter}  left:{index/len(combinations)}  {index}/{len(combinations)}", end="")
         # Save the configuration to a file
         config_filename = "config2137.txt"
         with open(config_filename, "w") as config_file:
@@ -178,7 +180,8 @@ for index in range(start_index, len(combinations)):
         # Save the DataFrame every few runs
         if run_counter % save_interval == 0:
             df = pd.DataFrame(results)
-            df.to_csv("C:\\inz\\GeneticSudokuSolver\\resultsnew.csv", mode='a', header=False, index=False)
+            file_exists = os.path.isfile(filename)
+            df.to_csv(filename, mode='a', header=not file_exists, index=False)
             results = []  # Clear the results list to free memory
 
     # Reset start_iteration for subsequent combinations
@@ -186,7 +189,7 @@ for index in range(start_index, len(combinations)):
 
 # Save the final DataFrame
 df = pd.DataFrame(results)
-df.to_csv("C:\\inz\\GeneticSudokuSolver\\resultsnew.csv", mode='a', header=False, index=False)
+df.to_csv(filename, mode='a', header=False, index=False)
 
 #add hour
 print(f"\nProcessing complete.{datetime.now()} ")
