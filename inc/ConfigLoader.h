@@ -5,6 +5,16 @@
 #include <functional>
 #include "Logger.h"
 
+struct MultiMutationConfig {
+    int multiMutation;
+    float multiMutationCoeff;
+};
+
+struct HarashMutationConfig {
+    int withoutImprovment;
+    float muationRate;
+};
+
 class ConfigEntry
 {
     
@@ -38,17 +48,36 @@ private:
     std::string sudokuPath;
     unsigned long populationSize;
     float mutationRate;
-    /* data */
+    float fittestRate;
+    int ResetCounter;
+    MultiMutationConfig multiMutationConfig;
+    bool preserveSelection;
+    HarashMutationConfig mutationResetCfg;
+    int fitestSelection;
+    int solverType;
+    bool adaptiveMutation;
+    bool multiCrossover;
+    bool experimentalMutation;
 public:
     //getters
+    bool getPreserveSelection() const {return preserveSelection;};
     LogLevel getLogLevel() const {return logLevel;};
     unsigned long getPopulationSize() const {return populationSize;};
     void ParseEntry(std::string key,std::string value);
     const std::string& getSudokuPath() const {return sudokuPath;};
+    float getMutationRate() const {return mutationRate;};
+    float getFittestRate() const {return fittestRate;};
+    int getResetCounter() const {return ResetCounter;};
+    int getMultiMutation() const {return multiMutationConfig.multiMutation;};
+    float getMultiMutationCoeff() const {return multiMutationConfig.multiMutationCoeff;};
+    const HarashMutationConfig& getHarashMutationConfig() const {return mutationResetCfg;};
+    int getFittest() const {return fitestSelection;};
+    int getSolverType() const {return solverType;};
+    bool getAdaptiveMutation() const {return adaptiveMutation;};
+    bool getMultiCrossover() const {return multiCrossover;};
+    bool getExperimentalMutation() const {return experimentalMutation;};
     Config();
     ~Config(){};
-    //prevent copy 
-    Config(const Config&) = delete;
 };
 
 class ConfigLoader
@@ -57,9 +86,10 @@ private:
     Config config;
 public:
     ConfigLoader(std::string configDir);
-    ConfigLoader()=delete;
+    ConfigLoader(){};
     ~ConfigLoader();
-    void loadConfig();
+    void loadConfigPath(std::string configDir);
+    void loadConfigStr(std::string configStr);
     const Config& getConfig() const
     {
         return config;
